@@ -8,8 +8,9 @@ edition = "2021"
 [dependencies]
 anyhow = "1.0.75"
 bytesize = "1.3.0"
+clap = { version = "4.4.11", features = ["derive"] }
 crossterm = "0.27.0"
 flexi_logger = "0.27.3"
+ignore = "0.4.21"
 log = "0.4.20"
 ratatui = "0.24.0"
-walkdir = "2.4.0"
