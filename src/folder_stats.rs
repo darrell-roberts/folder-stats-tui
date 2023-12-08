@@ -1,14 +1,13 @@
-use crate::event::Event;
+use crate::{app::Filter, event::Event};
 use log::error;
 use std::{
     collections::HashMap,
-    env::args,
     os::unix::ffi::OsStrExt,
-    path::{Path, PathBuf},
-    sync::mpsc::Sender,
+    path::PathBuf,
+    sync::{mpsc::Sender, Arc},
     thread,
 };
-use walkdir::WalkDir;
+use walkdir::{DirEntry, WalkDir};
 
 #[derive(Debug, Copy, Clone)]
 pub struct FolderStat {
@@ -18,15 +17,24 @@ pub struct FolderStat {
 
 /// Recusively scan folders from provided location or current location.
 /// Emit progress and final scan results.
-pub fn collect_folder_stats(sender: Sender<Event>, depth: usize) -> anyhow::Result<()> {
-    let root_path = Path::new(&args().nth(1).unwrap_or_else(|| ".".into())).canonicalize()?;
+pub fn collect_folder_stats(
+    sender: Sender<Event>,
+    depth: usize,
+    root_path: PathBuf,
+    filters: Arc<Vec<Filter>>,
+) -> anyhow::Result<()> {
     thread::spawn(move || {
-        scan_folders(sender, root_path, depth);
+        scan_folders(sender, root_path, depth, filters);
     });
     Ok(())
 }
 
-fn scan_folders(sender: Sender<Event>, root_path: PathBuf, depth: usize) {
+fn scan_folders(
+    sender: Sender<Event>,
+    root_path: PathBuf,
+    depth: usize,
+    filters: Arc<Vec<Filter>>,
+) {
     let mut folder_sizes = HashMap::new();
     let root_path_bytes = root_path.as_os_str().as_bytes();
     let walker = WalkDir::new(&root_path)
@@ -38,6 +46,10 @@ fn scan_folders(sender: Sender<Event>, root_path: PathBuf, depth: usize) {
         let (_, path) = p.split_at(root_path_bytes.len());
         String::from(path)
     };
+
+    let (filename_filters, extension_filters): (Vec<_>, Vec<_>) = filters
+        .iter()
+        .partition(|f| matches!(f, Filter::FileName(_)));
 
     for entry in walker {
         // Emit status.
@@ -51,6 +63,15 @@ fn scan_folders(sender: Sender<Event>, root_path: PathBuf, depth: usize) {
                 error!("Failed to emit folder name: {err}");
             }
         } else if let Ok(size) = entry.metadata().map(|md| md.len()) {
+            if !check_filename_filter(&entry, &filename_filters)
+                || !check_file_extension_filter(&entry, &extension_filters)
+            {
+                continue;
+            }
+            // if let Some(filename) = entry.file_name().to_str() {
+            //     debug!("{filename} passed filters");
+            // }
+
             let parents = entry
                 .path()
                 .ancestors()
@@ -76,4 +97,29 @@ fn scan_folders(sender: Sender<Event>, root_path: PathBuf, depth: usize) {
     if let Err(err) = sender.send(Event::ScanComplete(folder_sizes)) {
         error!("Failed to emit results {err}");
     }
+}
+
+fn check_filename_filter(entry: &DirEntry, filters: &[&Filter]) -> bool {
+    // Check filename filters.
+    if let Some(filename) = entry.file_name().to_str() {
+        if !filters.is_empty() && !filters.iter().any(|f| f.contains(filename)) {
+            return false;
+        }
+    }
+    true
+}
+
+fn check_file_extension_filter(entry: &DirEntry, filters: &[&Filter]) -> bool {
+    // Check extensions filters.
+    if !filters.is_empty() {
+        match entry.path().extension().and_then(|s| s.to_str()) {
+            Some(extension) => {
+                if !filters.iter().any(|f| f.contains(extension)) {
+                    return false;
+                }
+            }
+            None => return false,
+        }
+    }
+    true
 }

@@ -1,5 +1,5 @@
 use crate::{
-    app::App,
+    app::{App, Filter},
     event::{Event, EventHandler},
     folder_stats::collect_folder_stats,
     ui,
@@ -9,7 +9,11 @@ use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use std::{io, panic, sync::mpsc};
+use std::{
+    io, panic,
+    path::PathBuf,
+    sync::{mpsc, Arc},
+};
 
 pub type CrosstermTerminal = ratatui::Terminal<ratatui::backend::CrosstermBackend<std::io::Stderr>>;
 
@@ -21,8 +25,15 @@ pub struct Tui {
 
 impl Tui {
     /// Create a new [`Tui`]
-    pub fn new(terminal: CrosstermTerminal, events: EventHandler) -> Result<Self> {
-        collect_folder_stats(events.sender(), 1).context("Invalid folder path")?;
+    pub fn new(
+        terminal: CrosstermTerminal,
+        events: EventHandler,
+        root_path: PathBuf,
+        depth: usize,
+        filters: Arc<Vec<Filter>>,
+    ) -> Result<Self> {
+        collect_folder_stats(events.sender(), depth, root_path, filters)
+            .context("Invalid folder path")?;
         Ok(Self { terminal, events })
     }
 

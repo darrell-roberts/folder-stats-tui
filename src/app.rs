@@ -1,5 +1,5 @@
 use crate::folder_stats::FolderStat;
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 /// Sorting options for folders
 #[derive(Debug, Copy, Clone, Default)]
@@ -9,6 +9,21 @@ pub enum SortBy {
     FileSize,
     /// By total file counts.
     FileCount,
+}
+
+#[derive(Debug, Clone)]
+pub enum Filter {
+    Extension(String),
+    FileName(String),
+}
+
+impl Filter {
+    pub fn contains(&self, test: &str) -> bool {
+        match self {
+            Filter::Extension(s) => test.contains(s),
+            Filter::FileName(s) => test.contains(s),
+        }
+    }
 }
 
 /// Application State.
@@ -32,6 +47,10 @@ pub struct App {
     pub sort: SortBy,
     /// Content height.
     pub content_height: u16,
+
+    pub root_path: PathBuf,
+
+    pub filters: Arc<Vec<Filter>>,
 }
 
 impl App {
@@ -39,10 +58,12 @@ impl App {
     pub const ITEM_HEIGHT: u16 = 4;
 
     /// Create a new [`App`].
-    pub fn new() -> Self {
+    pub fn new(root_path: PathBuf, filters: Arc<Vec<Filter>>) -> Self {
         Self {
             scanning: true,
             depth: 1,
+            filters,
+            root_path,
             ..Default::default()
         }
     }
@@ -105,5 +126,9 @@ impl App {
     /// Compute the number of scroll state units for a full page.
     pub fn compute_scroll_page(&self) -> usize {
         (self.content_height / Self::ITEM_HEIGHT) as usize
+    }
+
+    pub fn root_folder(&self) -> &str {
+        self.root_path.as_path().to_str().unwrap_or("")
     }
 }

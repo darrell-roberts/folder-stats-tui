@@ -36,7 +36,9 @@ fn handle_depth_change(app: &mut App, depth: usize, sender: mpsc::Sender<Event>)
     }
     app.scanning = true;
     app.depth = depth;
-    if let Err(err) = collect_folder_stats(sender, depth) {
+    if let Err(err) =
+        collect_folder_stats(sender, depth, app.root_path.clone(), app.filters.clone())
+    {
         error!("Failed to change folder depth: {err}");
     }
 }

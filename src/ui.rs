@@ -1,5 +1,5 @@
 use crate::{
-    app::{App, SortBy},
+    app::{App, Filter, SortBy},
     event::Event,
 };
 use bytesize::ByteSize;
@@ -32,11 +32,11 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
 
     // The root entry has the recursive count for both file size and
     // total files.
-    let (root_folder, total_size, total_files) = app
+    let (total_size, total_files) = app
         .scan_result
         .iter()
         .last()
-        .map(|(f, v)| (f.as_str(), v.size, v.files))
+        .map(|(_, v)| (v.size, v.files))
         .unwrap_or_default();
 
     frame.render_widget(
@@ -51,7 +51,7 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
             vec![
                 Line::from(vec![
                     Span::styled("Scan results for: ", blue),
-                    Span::styled(root_folder, red),
+                    Span::styled(app.root_folder(), red),
                 ]),
                 Line::from(vec![
                     Span::styled("Total Size: ", blue),
@@ -71,6 +71,44 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
                     vec![
                         Span::styled("Folder depth: ", blue),
                         Span::styled(format!("{} ", &app.depth), red),
+                        Span::styled("Filter: ", blue),
+                        Span::styled(
+                            format!(
+                                "{} ",
+                                app.filters
+                                    .iter()
+                                    .filter_map(|f| {
+                                        match f {
+                                            Filter::FileName(s) => Some(s),
+                                            Filter::Extension(_) => None,
+                                        }
+                                    })
+                                    .fold(String::new(), |mut filter, f| {
+                                        filter.push_str(f);
+                                        filter
+                                    })
+                            ),
+                            red,
+                        ),
+                        Span::styled("Extension Filter: ", blue),
+                        Span::styled(
+                            format!(
+                                "{} ",
+                                app.filters
+                                    .iter()
+                                    .filter_map(|f| {
+                                        match f {
+                                            Filter::FileName(_) => None,
+                                            Filter::Extension(s) => Some(s),
+                                        }
+                                    })
+                                    .fold(String::new(), |mut filter, f| {
+                                        filter.push_str(f);
+                                        filter
+                                    })
+                            ),
+                            red,
+                        ),
                     ], // format!(
                        //     "Folder depth: {} Max scroll: {} Scroll: {} content height: {}",
                        //     &app.depth, &app.max_scroll, &app.scroll_state, rows[1].height
