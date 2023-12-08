@@ -25,7 +25,7 @@ impl Args {
     pub fn filters(self) -> Vec<Filter> {
         self.filter
             .into_iter()
-            .chain(self.extension_filter.into_iter())
+            .chain(self.extension_filter)
             .collect()
     }
 }

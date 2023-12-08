@@ -1,4 +1,3 @@
-use crate::folder_stats::FolderStat;
 use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
 /// Sorting options for folders
@@ -26,6 +25,12 @@ impl Filter {
     }
 }
 
+#[derive(Debug, Copy, Clone)]
+pub struct FolderStat {
+    pub size: u64,
+    pub files: usize,
+}
+
 /// Application State.
 #[derive(Debug, Default)]
 pub struct App {
@@ -51,6 +56,8 @@ pub struct App {
     pub root_path: PathBuf,
 
     pub filters: Arc<Vec<Filter>>,
+
+    pub folder_events: HashMap<String, FolderStat>,
 }
 
 impl App {

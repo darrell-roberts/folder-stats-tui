@@ -14,13 +14,14 @@ use update::handle_event;
 pub mod app;
 pub mod args;
 pub mod event;
-pub mod folder_stats;
+// pub mod folder_stats;
 pub mod tui;
 pub mod ui;
 pub mod update;
+pub mod walker;
 
 fn main() -> Result<()> {
-    Logger::try_with_str("debug")?
+    Logger::try_with_str("info")?
         .log_to_file(FileSpec::default().basename("f-stats").suffix("log"))
         .print_message()
         .start()?;

@@ -1,10 +1,9 @@
 use crate::{
-    app::{App, SortBy},
+    app::{App, FolderStat, SortBy},
     event::Event,
-    folder_stats::collect_folder_stats,
+    walker::collect_stats,
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseEvent};
-use log::error;
 use std::sync::mpsc;
 
 fn handle_key_event(app: &mut App, key_event: KeyEvent, sender: mpsc::Sender<Event>) {
@@ -36,11 +35,7 @@ fn handle_depth_change(app: &mut App, depth: usize, sender: mpsc::Sender<Event>)
     }
     app.scanning = true;
     app.depth = depth;
-    if let Err(err) =
-        collect_folder_stats(sender, depth, app.root_path.clone(), app.filters.clone())
-    {
-        error!("Failed to change folder depth: {err}");
-    }
+    collect_stats(sender, depth, app.root_path.clone(), app.filters.clone());
 }
 
 fn handle_mouse_event(app: &mut App, mouse_event: MouseEvent) {
@@ -71,9 +66,13 @@ pub fn handle_event(app: &mut App, event: Event, sender: mpsc::Sender<Event>) {
     match event {
         Event::Key(key_event) => handle_key_event(app, key_event, sender),
         Event::Progress(folder) => app.update_progress(folder),
-        Event::ScanComplete(result) => {
+        Event::ScanComplete => {
             app.scanning = false;
-            app.update_scan_result(result);
+            let mut sorted_result = std::mem::take(&mut app.folder_events)
+                .into_iter()
+                .collect::<Vec<_>>();
+            sorted_result.sort_unstable_by_key(|(_, stat)| stat.size);
+            app.scan_result = sorted_result;
         }
         Event::Mouse(mouse_event) => handle_mouse_event(app, mouse_event),
         Event::Resize(_, h) => {
@@ -85,6 +84,17 @@ pub fn handle_event(app: &mut App, event: Event, sender: mpsc::Sender<Event>) {
             // debug!("Initial content height {h}");
             app.content_height = h.checked_sub(2).unwrap_or(h);
             app.compute_max_scroll()
+        }
+        Event::FolderEvent(events) => {
+            for (folder_name, size) in events {
+                app.folder_events
+                    .entry(folder_name)
+                    .and_modify(|fs: &mut FolderStat| {
+                        fs.size += size;
+                        fs.files += 1;
+                    })
+                    .or_insert(FolderStat { size, files: 1 });
+            }
         }
         _ => (),
     }

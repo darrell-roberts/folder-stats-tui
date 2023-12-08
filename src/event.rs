@@ -1,9 +1,7 @@
-use crate::folder_stats::FolderStat;
 use anyhow::Result;
 use crossterm::event::{self, KeyEvent, MouseEvent};
 use log::error;
 use std::{
-    collections::HashMap,
     ops::Not,
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -22,8 +20,11 @@ pub enum Event {
     Mouse(MouseEvent),
     Resize(u16, u16),
     Progress(String),
-    ScanComplete(HashMap<String, FolderStat>),
+    ScanComplete,
     ContentFrameSize(u16),
+    FolderEvent(Vec<(String, u64)>),
+    WorkerStart,
+    WorkerEnd,
 }
 
 #[derive(Debug)]

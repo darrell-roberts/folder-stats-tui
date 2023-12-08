@@ -1,10 +1,10 @@
 use crate::{
     app::{App, Filter},
     event::{Event, EventHandler},
-    folder_stats::collect_folder_stats,
     ui,
+    walker::collect_stats,
 };
-use anyhow::{Context, Result};
+use anyhow::Result;
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},
@@ -32,8 +32,9 @@ impl Tui {
         depth: usize,
         filters: Arc<Vec<Filter>>,
     ) -> Result<Self> {
-        collect_folder_stats(events.sender(), depth, root_path, filters)
-            .context("Invalid folder path")?;
+        collect_stats(events.sender(), depth, root_path, filters);
+        // collect_folder_stats(events.sender(), depth, root_path, filters)
+        //     .context("Invalid folder path")?;
         Ok(Self { terminal, events })
     }
 
