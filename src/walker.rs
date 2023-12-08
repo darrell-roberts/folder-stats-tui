@@ -10,6 +10,7 @@ use std::{
     sync::{mpsc::Sender, Arc},
 };
 
+/// Path visitor for each parallel thread worker.
 struct MyParallelVisitor {
     root_path_bytes: Vec<u8>,
     sender: Sender<Event>,
@@ -18,6 +19,7 @@ struct MyParallelVisitor {
 }
 
 impl MyParallelVisitor {
+    /// Convert the cannonical path into a relative path.
     fn truncate_root(&self, path: &str) -> String {
         let (_, path) = path.split_at(self.root_path_bytes.len());
         String::from(path)
@@ -25,6 +27,7 @@ impl MyParallelVisitor {
 }
 
 impl ParallelVisitor for MyParallelVisitor {
+    /// Visit each directory entry.
     fn visit(&mut self, result: Result<DirEntry, ignore::Error>) -> WalkState {
         match result {
             Ok(entry) => {
@@ -77,6 +80,7 @@ impl Drop for MyParallelVisitor {
     }
 }
 
+/// Parallel visitor builder.
 struct MyVisitorBuilder {
     sender: Sender<Event>,
     depth: usize,
@@ -84,6 +88,7 @@ struct MyVisitorBuilder {
 }
 
 impl<'s> ParallelVisitorBuilder<'s> for MyVisitorBuilder {
+    /// Build an [`ignore::ParallelVisitor`].
     fn build(&mut self) -> Box<dyn ignore::ParallelVisitor + 's> {
         Box::new(MyParallelVisitor {
             sender: self.sender.clone(),
@@ -102,6 +107,9 @@ impl Drop for MyVisitorBuilder {
     }
 }
 
+/// Spawn a thread that will configure and launch the ignore parallel walker. Each
+/// visitor will collect it's results and then emit them when dropped. The builder
+/// emits a traversal completed event when it is dropped.
 pub fn collect_stats(sender: Sender<Event>, config: Arc<Config>, depth: Option<usize>) {
     std::thread::spawn(move || {
         let c = config.clone();
