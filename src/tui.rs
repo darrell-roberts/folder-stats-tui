@@ -1,10 +1,9 @@
 use crate::{
     app::App,
     event::{Event, EventHandler},
-    folder_stats::collect_folder_stats,
     ui,
 };
-use anyhow::{Context, Result};
+use anyhow::Result;
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},
@@ -22,7 +21,6 @@ pub struct Tui {
 impl Tui {
     /// Create a new [`Tui`]
     pub fn new(terminal: CrosstermTerminal, events: EventHandler) -> Result<Self> {
-        collect_folder_stats(events.sender(), 1).context("Invalid folder path")?;
         Ok(Self { terminal, events })
     }
 

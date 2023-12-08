@@ -1,4 +1,3 @@
-use crate::folder_stats::FolderStat;
 use anyhow::Result;
 use crossterm::event::{self, KeyEvent, MouseEvent};
 use log::error;
@@ -13,6 +12,8 @@ use std::{
     time::{Duration, Instant},
 };
 
+use crate::app::FolderStat;
+
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 
 #[derive(Clone, Debug)]
@@ -22,8 +23,12 @@ pub enum Event {
     Mouse(MouseEvent),
     Resize(u16, u16),
     Progress(String),
-    ScanComplete(HashMap<String, FolderStat>),
+    ScanComplete,
     ContentFrameSize(u16),
+    // FolderEvent(Vec<(String, u64)>),
+    FolderEvent(HashMap<String, FolderStat>),
+    WorkerStart,
+    WorkerEnd,
 }
 
 #[derive(Debug)]
