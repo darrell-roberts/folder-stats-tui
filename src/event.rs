@@ -1,3 +1,4 @@
+use crate::app::FolderStat;
 use anyhow::Result;
 use crossterm::event::{self, KeyEvent, MouseEvent};
 use log::error;
@@ -12,25 +13,29 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crate::app::FolderStat;
-
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 
+/// Events emitted by Walker and Crossterm.
 #[derive(Clone, Debug)]
 pub enum Event {
     Tick,
+    /// Crossterm key event.
     Key(KeyEvent),
+    /// Crossterm mouse event.
     Mouse(MouseEvent),
+    /// Crossterm resize event.
     Resize(u16, u16),
+    /// Walker scan progress. Emits folder being scanned.
     Progress(String),
+    /// Walker scan completed.
     ScanComplete,
+    /// Initial rendered content frame size.
     ContentFrameSize(u16),
-    // FolderEvent(Vec<(String, u64)>),
+    /// Walker parallel worker folder collection.
     FolderEvent(HashMap<String, FolderStat>),
-    WorkerStart,
-    WorkerEnd,
 }
 
+/// Application event handler.
 #[derive(Debug)]
 pub struct EventHandler {
     sender: mpsc::Sender<Event>,
@@ -39,6 +44,7 @@ pub struct EventHandler {
 }
 
 impl EventHandler {
+    /// Create an application event handler with the given tick rate.
     pub fn new(tick_rate: u64) -> Self {
         let tick_rate = Duration::from_millis(tick_rate);
         let (sender, receiver) = mpsc::channel();
@@ -95,14 +101,17 @@ impl EventHandler {
         }
     }
 
+    /// Create a sender to emit to this event handler.
     pub fn sender(&self) -> mpsc::Sender<Event> {
         self.sender.clone()
     }
 
+    /// Receive the next emitted event.
     pub fn next(&self) -> Result<Event> {
         Ok(self.receiver.recv()?)
     }
 
+    /// Shut down the event handler.
     pub fn shut_down(self) {
         SHUTTING_DOWN.store(true, Ordering::Release);
         if self.handler.join().is_err() {
