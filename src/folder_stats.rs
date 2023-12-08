@@ -37,19 +37,25 @@ fn scan_folders(
 ) {
     let mut folder_sizes = HashMap::new();
     let root_path_bytes = root_path.as_os_str().as_bytes();
+
+    let (filename_filters, extension_filters): (Vec<_>, Vec<_>) = filters
+        .iter()
+        .partition(|f| matches!(f, Filter::FileName(_)));
+
     let walker = WalkDir::new(&root_path)
         .into_iter()
-        .flat_map(|f| f.ok())
-        .filter(|entry| !entry.path_is_symlink());
+        .filter_entry(|entry| {
+            (entry.file_type().is_file()
+                && check_filename_filter(&entry, &filename_filters)
+                && check_file_extension_filter(&entry, &extension_filters))
+                || entry.file_type().is_dir()
+        })
+        .flat_map(|f| f.ok());
 
     let truncate_root = |p: &str| {
         let (_, path) = p.split_at(root_path_bytes.len());
         String::from(path)
     };
-
-    let (filename_filters, extension_filters): (Vec<_>, Vec<_>) = filters
-        .iter()
-        .partition(|f| matches!(f, Filter::FileName(_)));
 
     for entry in walker {
         // Emit status.
@@ -63,11 +69,6 @@ fn scan_folders(
                 error!("Failed to emit folder name: {err}");
             }
         } else if let Ok(size) = entry.metadata().map(|md| md.len()) {
-            if !check_filename_filter(&entry, &filename_filters)
-                || !check_file_extension_filter(&entry, &extension_filters)
-            {
-                continue;
-            }
             // if let Some(filename) = entry.file_name().to_str() {
             //     debug!("{filename} passed filters");
             // }
@@ -101,25 +102,24 @@ fn scan_folders(
 
 fn check_filename_filter(entry: &DirEntry, filters: &[&Filter]) -> bool {
     // Check filename filters.
-    if let Some(filename) = entry.file_name().to_str() {
-        if !filters.is_empty() && !filters.iter().any(|f| f.contains(filename)) {
-            return false;
+    if !filters.is_empty() {
+        match entry.file_name().to_str() {
+            Some(filename) => filters.iter().any(|f| f.contains(filename)),
+            None => false,
         }
+    } else {
+        true
     }
-    true
 }
 
 fn check_file_extension_filter(entry: &DirEntry, filters: &[&Filter]) -> bool {
     // Check extensions filters.
     if !filters.is_empty() {
         match entry.path().extension().and_then(|s| s.to_str()) {
-            Some(extension) => {
-                if !filters.iter().any(|f| f.contains(extension)) {
-                    return false;
-                }
-            }
-            None => return false,
+            Some(extension) => filters.iter().any(|f| f.contains(extension)),
+            None => false,
         }
+    } else {
+        true
     }
-    true
 }

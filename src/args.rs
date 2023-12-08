@@ -1,30 +1,31 @@
-use std::path::PathBuf;
-
-use clap::Parser;
-
 use crate::app::Filter;
+use clap::Parser;
+use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
 pub struct Args {
-    #[arg(short, long, default_value = ".")]
+    #[arg(short = 'p', long = "path", default_value = ".")]
     pub root_path: PathBuf,
 
     #[arg(short, long, default_value_t = 1)]
     pub depth: usize,
 
-    #[arg(short, long)]
-    pub filter: Option<String>,
+    #[arg(short = 'f', long, value_parser = |s: &str| {
+        Ok::<_, std::convert::Infallible>(Filter::FileName(s.to_string()))
+    })]
+    pub filter: Option<Filter>,
 
-    #[arg(short, long)]
-    pub extension_filter: Option<String>,
+    #[arg(short = 'e', long = "extension", value_parser = |s: &str| {
+        Ok::<_, std::convert::Infallible>(Filter::Extension(s.to_string()))
+    })]
+    pub extension_filter: Option<Filter>,
 }
 
 impl Args {
     pub fn filters(self) -> Vec<Filter> {
         self.filter
             .into_iter()
-            .map(Filter::FileName)
-            .chain(self.extension_filter.into_iter().map(Filter::Extension))
+            .chain(self.extension_filter.into_iter())
             .collect()
     }
 }
