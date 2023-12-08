@@ -1,5 +1,5 @@
 use crate::{
-    app::{Filter, FolderStat},
+    app::{Config, Filter, FolderStat},
     event::Event,
 };
 use ignore::{DirEntry, ParallelVisitor, ParallelVisitorBuilder, WalkBuilder, WalkState};
@@ -7,7 +7,6 @@ use log::error;
 use std::{
     collections::HashMap,
     os::unix::ffi::OsStrExt,
-    path::PathBuf,
     sync::{mpsc::Sender, Arc},
 };
 
@@ -103,30 +102,25 @@ impl Drop for MyVisitorBuilder {
     }
 }
 
-pub fn collect_stats(
-    sender: Sender<Event>,
-    depth: usize,
-    root_path: PathBuf,
-    filters: Arc<Vec<Filter>>,
-    no_ignores: bool,
-) {
+pub fn collect_stats(sender: Sender<Event>, config: Arc<Config>, depth: Option<usize>) {
     std::thread::spawn(move || {
-        let walker = WalkBuilder::new(&root_path)
+        let c = config.clone();
+        let walker = WalkBuilder::new(&config.root_path)
             .filter_entry(move |entry| {
                 (entry.file_type().map(|e| e.is_file()).unwrap_or(false)
-                    && check_filename_filter(entry, filters.clone())
-                    && check_file_extension_filter(entry, filters.clone()))
+                    && check_filename_filter(entry, &c.filters)
+                    && check_file_extension_filter(entry, &c.filters))
                     || entry.file_type().map(|e| e.is_dir()).unwrap_or(false)
             })
-            .ignore(!no_ignores)
-            .git_ignore(!no_ignores)
+            .ignore(!config.no_ignores)
+            .git_ignore(!config.no_ignores)
             .build_parallel();
 
-        let root_path_bytes = root_path.as_os_str().as_bytes().to_vec();
+        let root_path_bytes = config.root_path.as_os_str().as_bytes().to_vec();
 
         let mut my_builder = MyVisitorBuilder {
             sender,
-            depth,
+            depth: depth.unwrap_or(config.depth),
             root_path_bytes,
         };
 
@@ -134,7 +128,7 @@ pub fn collect_stats(
     });
 }
 
-fn check_filename_filter(entry: &DirEntry, filters: Arc<Vec<Filter>>) -> bool {
+fn check_filename_filter(entry: &DirEntry, filters: &[Filter]) -> bool {
     let filename_filter = || filters.iter().filter(|f| matches!(f, Filter::FileName(_)));
     // Check filename filters.
     if filename_filter().next().is_some() {
@@ -147,7 +141,7 @@ fn check_filename_filter(entry: &DirEntry, filters: Arc<Vec<Filter>>) -> bool {
     }
 }
 
-fn check_file_extension_filter(entry: &DirEntry, filters: Arc<Vec<Filter>>) -> bool {
+fn check_file_extension_filter(entry: &DirEntry, filters: &[Filter]) -> bool {
     let extension_filter = || filters.iter().filter(|f| matches!(f, Filter::Extension(_)));
     // Check extensions filters.
     if extension_filter().next().is_some() {
