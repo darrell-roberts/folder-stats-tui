@@ -35,13 +35,8 @@ fn handle_depth_change(app: &mut App, depth: usize, sender: mpsc::Sender<Event>)
     }
     app.scanning = true;
     app.depth = depth;
-    collect_stats(
-        sender,
-        depth,
-        app.root_path.clone(),
-        app.filters.clone(),
-        app.no_ignores,
-    );
+
+    collect_stats(sender, app.config.clone(), Some(depth));
 }
 
 fn handle_mouse_event(app: &mut App, mouse_event: MouseEvent) {

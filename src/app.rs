@@ -1,5 +1,7 @@
 use std::{collections::HashMap, path::PathBuf, sync::Arc};
 
+use crate::args::Args;
+
 /// Sorting options for folders
 #[derive(Debug, Copy, Clone, Default)]
 pub enum SortBy {
@@ -31,6 +33,29 @@ pub struct FolderStat {
     pub files: usize,
 }
 
+#[derive(Debug, Default)]
+pub struct Config {
+    pub root_path: PathBuf,
+    pub filters: Vec<Filter>,
+    pub no_ignores: bool,
+    pub depth: usize,
+}
+
+impl TryFrom<Args> for Config {
+    type Error = anyhow::Error;
+
+    fn try_from(args: Args) -> Result<Self, Self::Error> {
+        let root_path = args.root_path.canonicalize()?;
+
+        Ok(Self {
+            root_path,
+            no_ignores: args.no_ignores,
+            depth: args.depth,
+            filters: args.filters(),
+        })
+    }
+}
+
 /// Application State.
 #[derive(Debug, Default)]
 pub struct App {
@@ -53,13 +78,14 @@ pub struct App {
     /// Content height.
     pub content_height: u16,
     /// Root path for search.
-    pub root_path: PathBuf,
+    // pub root_path: PathBuf,
     /// Filters for search.
-    pub filters: Arc<Vec<Filter>>,
+    // pub filters: Arc<Vec<Filter>>,
     /// Folder events emitted by walker.
     pub folder_events: HashMap<String, FolderStat>,
     /// true when not using ignores (.ignore, .gitignore...)
-    pub no_ignores: bool,
+    // pub no_ignores: bool,
+    pub config: Arc<Config>,
 }
 
 impl App {
@@ -67,13 +93,11 @@ impl App {
     pub const ITEM_HEIGHT: u16 = 4;
 
     /// Create a new [`App`].
-    pub fn new(root_path: PathBuf, filters: Arc<Vec<Filter>>, no_ignores: bool) -> Self {
+    pub fn new(config: Arc<Config>) -> Self {
         Self {
             scanning: true,
-            depth: 1,
-            filters,
-            root_path,
-            no_ignores,
+            depth: config.depth,
+            config,
             ..Default::default()
         }
     }
@@ -139,6 +163,6 @@ impl App {
     }
 
     pub fn root_folder(&self) -> &str {
-        self.root_path.as_path().to_str().unwrap_or("")
+        self.config.root_path.as_path().to_str().unwrap_or("")
     }
 }
