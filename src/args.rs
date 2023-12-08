@@ -19,6 +19,9 @@ pub struct Args {
         Ok::<_, std::convert::Infallible>(Filter::Extension(s.to_string()))
     })]
     pub extension_filter: Option<Filter>,
+
+    #[arg(short = 'i', long, default_value_t = false)]
+    pub no_ignores: bool,
 }
 
 impl Args {

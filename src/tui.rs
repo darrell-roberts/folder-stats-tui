@@ -1,19 +1,14 @@
 use crate::{
-    app::{App, Filter},
+    app::App,
     event::{Event, EventHandler},
     ui,
-    walker::collect_stats,
 };
 use anyhow::Result;
 use crossterm::{
     event::{DisableMouseCapture, EnableMouseCapture},
     terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},
 };
-use std::{
-    io, panic,
-    path::PathBuf,
-    sync::{mpsc, Arc},
-};
+use std::{io, panic, sync::mpsc};
 
 pub type CrosstermTerminal = ratatui::Terminal<ratatui::backend::CrosstermBackend<std::io::Stderr>>;
 
@@ -25,16 +20,7 @@ pub struct Tui {
 
 impl Tui {
     /// Create a new [`Tui`]
-    pub fn new(
-        terminal: CrosstermTerminal,
-        events: EventHandler,
-        root_path: PathBuf,
-        depth: usize,
-        filters: Arc<Vec<Filter>>,
-    ) -> Result<Self> {
-        collect_stats(events.sender(), depth, root_path, filters);
-        // collect_folder_stats(events.sender(), depth, root_path, filters)
-        //     .context("Invalid folder path")?;
+    pub fn new(terminal: CrosstermTerminal, events: EventHandler) -> Result<Self> {
         Ok(Self { terminal, events })
     }
 

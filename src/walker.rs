@@ -108,25 +108,30 @@ pub fn collect_stats(
     depth: usize,
     root_path: PathBuf,
     filters: Arc<Vec<Filter>>,
+    no_ignores: bool,
 ) {
-    let walker = WalkBuilder::new(&root_path)
-        .filter_entry(move |entry| {
-            (entry.file_type().map(|e| e.is_file()).unwrap_or(false)
-                && check_filename_filter(entry, filters.clone())
-                && check_file_extension_filter(entry, filters.clone()))
-                || entry.file_type().map(|e| e.is_dir()).unwrap_or(false)
-        })
-        .build_parallel();
+    std::thread::spawn(move || {
+        let walker = WalkBuilder::new(&root_path)
+            .filter_entry(move |entry| {
+                (entry.file_type().map(|e| e.is_file()).unwrap_or(false)
+                    && check_filename_filter(entry, filters.clone())
+                    && check_file_extension_filter(entry, filters.clone()))
+                    || entry.file_type().map(|e| e.is_dir()).unwrap_or(false)
+            })
+            .ignore(!no_ignores)
+            .git_ignore(!no_ignores)
+            .build_parallel();
 
-    let root_path_bytes = root_path.as_os_str().as_bytes().to_vec();
+        let root_path_bytes = root_path.as_os_str().as_bytes().to_vec();
 
-    let mut my_builder = MyVisitorBuilder {
-        sender,
-        depth,
-        root_path_bytes,
-    };
+        let mut my_builder = MyVisitorBuilder {
+            sender,
+            depth,
+            root_path_bytes,
+        };
 
-    walker.visit(&mut my_builder);
+        walker.visit(&mut my_builder);
+    });
 }
 
 fn check_filename_filter(entry: &DirEntry, filters: Arc<Vec<Filter>>) -> bool {

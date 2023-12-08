@@ -52,12 +52,14 @@ pub struct App {
     pub sort: SortBy,
     /// Content height.
     pub content_height: u16,
-
+    /// Root path for search.
     pub root_path: PathBuf,
-
+    /// Filters for search.
     pub filters: Arc<Vec<Filter>>,
-
+    /// Folder events emitted by walker.
     pub folder_events: HashMap<String, FolderStat>,
+    /// true when not using ignores (.ignore, .gitignore...)
+    pub no_ignores: bool,
 }
 
 impl App {
@@ -65,12 +67,13 @@ impl App {
     pub const ITEM_HEIGHT: u16 = 4;
 
     /// Create a new [`App`].
-    pub fn new(root_path: PathBuf, filters: Arc<Vec<Filter>>) -> Self {
+    pub fn new(root_path: PathBuf, filters: Arc<Vec<Filter>>, no_ignores: bool) -> Self {
         Self {
             scanning: true,
             depth: 1,
             filters,
             root_path,
+            no_ignores,
             ..Default::default()
         }
     }

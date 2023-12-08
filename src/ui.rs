@@ -108,6 +108,8 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
                         ),
                         red,
                     ),
+                    Span::styled("ignores: ", blue),
+                    Span::styled(format!("{}", !app.no_ignores), red),
                 ]),
             ]
         })
