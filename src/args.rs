@@ -4,23 +4,33 @@ use std::path::PathBuf;
 
 #[derive(Debug, Parser)]
 pub struct Args {
-    #[arg(short = 'p', long = "path", default_value = ".")]
+    #[arg(
+        short = 'p',
+        long = "path",
+        default_value = ".",
+        help = "Folder to scan."
+    )]
     pub root_path: PathBuf,
 
-    #[arg(short, long, default_value_t = 1)]
+    #[arg(short, long, default_value_t = 1, help = "Folder depth to see in Tui")]
     pub depth: usize,
 
     #[arg(short = 'f', long, value_parser = |s: &str| {
         Ok::<_, std::convert::Infallible>(Filter::FileName(s.to_string()))
-    })]
+    }, help = "Filter files that contain text")]
     pub filter: Option<Filter>,
 
     #[arg(short = 'e', long = "extension", value_parser = |s: &str| {
         Ok::<_, std::convert::Infallible>(Filter::Extension(s.to_string()))
-    })]
+    }, help = "Filter by file extension. Ex: -e rs")]
     pub extension_filter: Option<Filter>,
 
-    #[arg(short = 'i', long, default_value_t = false)]
+    #[arg(
+        short = 'i',
+        long,
+        default_value_t = false,
+        help = "Disable .ignore, .gitignore filtering"
+    )]
     pub no_ignores: bool,
 }
 
