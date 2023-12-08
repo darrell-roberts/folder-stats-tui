@@ -74,7 +74,8 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
                     Span::styled(
                         format!(
                             "{} ",
-                            app.filters
+                            app.config
+                                .filters
                                 .iter()
                                 .filter_map(|f| {
                                     match f {
@@ -93,7 +94,8 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
                     Span::styled(
                         format!(
                             "{} ",
-                            app.filters
+                            app.config
+                                .filters
                                 .iter()
                                 .filter_map(|f| {
                                     match f {
@@ -102,6 +104,7 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
                                     }
                                 })
                                 .fold(String::new(), |mut filter, f| {
+                                    filter.push('.');
                                     filter.push_str(f);
                                     filter
                                 })
@@ -109,7 +112,7 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
                         red,
                     ),
                     Span::styled("ignores: ", blue),
-                    Span::styled(format!("{}", !app.no_ignores), red),
+                    Span::styled(format!("{}", !app.config.no_ignores), red),
                 ]),
             ]
         })

@@ -1,11 +1,11 @@
 # Folder stats
-A simple Tui that shows folder stats
+A simple Tui that shows folder stats as two bar charts, one for aggregate folder file size and one for aggregate file counts.
 
 * Toggle .ignore/.gitnore support. Enabled by default.
-* Filter results by filename
-* Filter results by file name extension.
-* Set the folder depth to view in results (keys 1-5 in Tui)
-* Sort results by file size or file count (keys "s" for size and "c" for count in Tui)
+* Filter folders by filename
+* Filter folders by file name extension.
+* Set the folder depth to view (keys 1-8 in Tui)
+* Sort folders by file size or file count (keys "s" for size and "c" for count in Tui)
 * Key "q" to quit Tui
 
 ## Options
