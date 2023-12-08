@@ -13,11 +13,11 @@ A simple Tui that shows folder stats as two bar charts, one for aggregate folder
 Usage: folder-stats-tui [OPTIONS]
 
 Options:
-  -p, --path <ROOT_PATH>              [default: .]
-  -d, --depth <DEPTH>                 [default: 1]
-  -f, --filter <FILTER>
-  -e, --extension <EXTENSION_FILTER>
-  -i, --no-ignores
+  -p, --path <ROOT_PATH>              Folder to scan. [default: .]
+  -d, --depth <DEPTH>                 Folder depth to see in Tui [default: 1]
+  -f, --filter <FILTER>               Filter files that contain text
+  -e, --extension <EXTENSION_FILTER>  Filter by file extension. Ex: -e rs
+  -i, --no-ignores                    Disable .ignore, .gitignore filtering
   -h, --help                          Print help
 ```
 
