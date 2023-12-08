@@ -50,9 +50,8 @@ impl ParallelVisitor for MyParallelVisitor {
                         .take_while(|p| p.as_bytes().starts_with(&self.root_path_bytes));
 
                     for parent in parents {
-                        let parent = self.truncate_root(parent);
                         self.results
-                            .entry(parent)
+                            .entry(self.truncate_root(parent))
                             .and_modify(|fs: &mut FolderStat| {
                                 fs.size += size;
                                 fs.files += 1;

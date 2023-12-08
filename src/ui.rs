@@ -67,54 +67,48 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
                     Span::styled("Total Files: ", blue),
                     Span::styled(format!("{total_files} "), red),
                 ]),
-                Line::from(
-                    vec![
-                        Span::styled("Folder depth: ", blue),
-                        Span::styled(format!("{} ", &app.depth), red),
-                        Span::styled("Filter: ", blue),
-                        Span::styled(
-                            format!(
-                                "{} ",
-                                app.filters
-                                    .iter()
-                                    .filter_map(|f| {
-                                        match f {
-                                            Filter::FileName(s) => Some(s),
-                                            Filter::Extension(_) => None,
-                                        }
-                                    })
-                                    .fold(String::new(), |mut filter, f| {
-                                        filter.push_str(f);
-                                        filter
-                                    })
-                            ),
-                            red,
+                Line::from(vec![
+                    Span::styled("Folder depth: ", blue),
+                    Span::styled(format!("{} ", &app.depth), red),
+                    Span::styled("Filter: ", blue),
+                    Span::styled(
+                        format!(
+                            "{} ",
+                            app.filters
+                                .iter()
+                                .filter_map(|f| {
+                                    match f {
+                                        Filter::FileName(s) => Some(s),
+                                        Filter::Extension(_) => None,
+                                    }
+                                })
+                                .fold(String::new(), |mut filter, f| {
+                                    filter.push_str(f);
+                                    filter
+                                })
                         ),
-                        Span::styled("Extension Filter: ", blue),
-                        Span::styled(
-                            format!(
-                                "{} ",
-                                app.filters
-                                    .iter()
-                                    .filter_map(|f| {
-                                        match f {
-                                            Filter::FileName(_) => None,
-                                            Filter::Extension(s) => Some(s),
-                                        }
-                                    })
-                                    .fold(String::new(), |mut filter, f| {
-                                        filter.push_str(f);
-                                        filter
-                                    })
-                            ),
-                            red,
+                        red,
+                    ),
+                    Span::styled("Extension Filter: ", blue),
+                    Span::styled(
+                        format!(
+                            "{} ",
+                            app.filters
+                                .iter()
+                                .filter_map(|f| {
+                                    match f {
+                                        Filter::FileName(_) => None,
+                                        Filter::Extension(s) => Some(s),
+                                    }
+                                })
+                                .fold(String::new(), |mut filter, f| {
+                                    filter.push_str(f);
+                                    filter
+                                })
                         ),
-                    ], // format!(
-                       //     "Folder depth: {} Max scroll: {} Scroll: {} content height: {}",
-                       //     &app.depth, &app.max_scroll, &app.scroll_state, rows[1].height
-                       // )
-                       // .cyan(),
-                ),
+                        red,
+                    ),
+                ]),
             ]
         })
         .block(
@@ -127,7 +121,6 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
                 .borders(Borders::ALL)
                 .border_type(BorderType::Rounded)
                 .border_style(Style::default().fg(Color::DarkGray)),
-            // .style(Style::default().bg(Color::White)),
         ),
         rows[0],
     );
@@ -187,7 +180,6 @@ fn render_content(
                     "Largest by File Count"
                 })
                 .border_style(Style::default().fg(Color::DarkGray))
-                // .style(Style::default().bg(Color::White))
                 .borders(Borders::ALL)
                 .border_type(BorderType::Rounded),
         )
