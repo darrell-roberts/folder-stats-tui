@@ -1,7 +1,11 @@
-use crate::{app::Filter, event::Event};
+use crate::{
+    app::{Filter, FolderStat},
+    event::Event,
+};
 use ignore::{DirEntry, ParallelVisitor, ParallelVisitorBuilder, WalkBuilder, WalkState};
 use log::error;
 use std::{
+    collections::HashMap,
     os::unix::ffi::OsStrExt,
     path::PathBuf,
     sync::{mpsc::Sender, Arc},
@@ -11,6 +15,7 @@ struct MyParallelVisitor {
     root_path_bytes: Vec<u8>,
     sender: Sender<Event>,
     depth: usize,
+    results: HashMap<String, FolderStat>,
 }
 
 impl MyParallelVisitor {
@@ -42,12 +47,17 @@ impl ParallelVisitor for MyParallelVisitor {
                         .skip(entry.depth().checked_sub(self.depth).unwrap_or(1))
                         .filter(|p| !p.is_symlink() && p.is_dir())
                         .flat_map(|p| p.as_os_str().to_str())
-                        .take_while(|p| p.as_bytes().starts_with(&self.root_path_bytes))
-                        .map(|name| (self.truncate_root(name), size))
-                        .collect::<Vec<_>>();
+                        .take_while(|p| p.as_bytes().starts_with(&self.root_path_bytes));
 
-                    if let Err(err) = self.sender.send(Event::FolderEvent(parents)) {
-                        error!("Failed to emit folder events {err}");
+                    for parent in parents {
+                        let parent = self.truncate_root(parent);
+                        self.results
+                            .entry(parent)
+                            .and_modify(|fs: &mut FolderStat| {
+                                fs.size += size;
+                                fs.files += 1;
+                            })
+                            .or_insert(FolderStat { size, files: 1 });
                     }
                 }
                 WalkState::Continue
@@ -56,6 +66,15 @@ impl ParallelVisitor for MyParallelVisitor {
                 error!("Failed to walk {err}");
                 WalkState::Quit
             }
+        }
+    }
+}
+
+impl Drop for MyParallelVisitor {
+    fn drop(&mut self) {
+        let results = std::mem::take(&mut self.results);
+        if let Err(err) = self.sender.send(Event::FolderEvent(results)) {
+            error!("Failed to emit folder events {err}");
         }
     }
 }
@@ -72,6 +91,7 @@ impl<'s> ParallelVisitorBuilder<'s> for MyVisitorBuilder {
             sender: self.sender.clone(),
             depth: self.depth,
             root_path_bytes: self.root_path_bytes.clone(),
+            results: HashMap::new(),
         })
     }
 }

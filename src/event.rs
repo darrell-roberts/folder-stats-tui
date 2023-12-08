@@ -2,6 +2,7 @@ use anyhow::Result;
 use crossterm::event::{self, KeyEvent, MouseEvent};
 use log::error;
 use std::{
+    collections::HashMap,
     ops::Not,
     sync::{
         atomic::{AtomicBool, Ordering},
@@ -10,6 +11,8 @@ use std::{
     thread::{self},
     time::{Duration, Instant},
 };
+
+use crate::app::FolderStat;
 
 static SHUTTING_DOWN: AtomicBool = AtomicBool::new(false);
 
@@ -22,7 +25,8 @@ pub enum Event {
     Progress(String),
     ScanComplete,
     ContentFrameSize(u16),
-    FolderEvent(Vec<(String, u64)>),
+    // FolderEvent(Vec<(String, u64)>),
+    FolderEvent(HashMap<String, FolderStat>),
     WorkerStart,
     WorkerEnd,
 }

@@ -86,14 +86,17 @@ pub fn handle_event(app: &mut App, event: Event, sender: mpsc::Sender<Event>) {
             app.compute_max_scroll()
         }
         Event::FolderEvent(events) => {
-            for (folder_name, size) in events {
+            for (folder_name, stats) in events {
                 app.folder_events
                     .entry(folder_name)
                     .and_modify(|fs: &mut FolderStat| {
-                        fs.size += size;
-                        fs.files += 1;
+                        fs.size += stats.size;
+                        fs.files += stats.files;
                     })
-                    .or_insert(FolderStat { size, files: 1 });
+                    .or_insert(FolderStat {
+                        size: stats.size,
+                        files: stats.files,
+                    });
             }
         }
         _ => (),
