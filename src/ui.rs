@@ -104,6 +104,7 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
                                     }
                                 })
                                 .fold(String::new(), |mut filter, f| {
+                                    filter.push('.');
                                     filter.push_str(f);
                                     filter
                                 })

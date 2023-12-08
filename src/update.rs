@@ -25,6 +25,9 @@ fn handle_key_event(app: &mut App, key_event: KeyEvent, sender: mpsc::Sender<Eve
         KeyCode::Char('3') => handle_depth_change(app, 3, sender),
         KeyCode::Char('4') => handle_depth_change(app, 4, sender),
         KeyCode::Char('5') => handle_depth_change(app, 5, sender),
+        KeyCode::Char('6') => handle_depth_change(app, 6, sender),
+        KeyCode::Char('7') => handle_depth_change(app, 7, sender),
+        KeyCode::Char('8') => handle_depth_change(app, 8, sender),
         _ => (),
     }
 }
@@ -49,18 +52,12 @@ fn handle_mouse_event(app: &mut App, mouse_event: MouseEvent) {
 
 fn handle_sort(app: &mut App, sort_by: SortBy) {
     app.sort = sort_by;
-    match sort_by {
-        SortBy::FileSize => {
-            app.scan_result
-                .sort_unstable_by_key(|(_, stats)| stats.size);
-            app.scroll_state = 0;
-        }
-        SortBy::FileCount => {
-            app.scan_result
-                .sort_unstable_by_key(|(_, stats)| stats.files);
-            app.scroll_state = 0;
-        }
-    }
+    app.scan_result
+        .sort_unstable_by_key(|(_, stats)| match sort_by {
+            SortBy::FileSize => stats.size as usize,
+            SortBy::FileCount => stats.files,
+        });
+    app.scroll_state = 0;
 }
 
 pub fn handle_event(app: &mut App, event: Event, sender: mpsc::Sender<Event>) {
@@ -74,6 +71,7 @@ pub fn handle_event(app: &mut App, event: Event, sender: mpsc::Sender<Event>) {
                 .collect::<Vec<_>>();
             sorted_result.sort_unstable_by_key(|(_, stat)| stat.size);
             app.scan_result = sorted_result;
+            app.compute_max_scroll();
         }
         Event::Mouse(mouse_event) => handle_mouse_event(app, mouse_event),
         Event::Resize(_, h) => {

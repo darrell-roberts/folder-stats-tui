@@ -1,6 +1,5 @@
-use std::{collections::HashMap, path::PathBuf, sync::Arc};
-
 use crate::args::Args;
+use std::{borrow::Cow, collections::HashMap, path::PathBuf, sync::Arc};
 
 /// Sorting options for folders
 #[derive(Debug, Copy, Clone, Default)]
@@ -12,9 +11,12 @@ pub enum SortBy {
     FileCount,
 }
 
+/// Filters to apply to scan.
 #[derive(Debug, Clone)]
 pub enum Filter {
+    /// File name extension filter.
     Extension(String),
+    /// File name filter.
     FileName(String),
 }
 
@@ -27,17 +29,26 @@ impl Filter {
     }
 }
 
+/// Statistics for a folder.
 #[derive(Debug, Copy, Clone)]
 pub struct FolderStat {
+    /// Recursive total file sizes.
     pub size: u64,
+    /// Recursive total file count.
     pub files: usize,
 }
 
+/// Application configuration sourced
+/// from command line argument options.
 #[derive(Debug, Default)]
 pub struct Config {
+    /// Path to scan.
     pub root_path: PathBuf,
+    /// Filters for scan.
     pub filters: Vec<Filter>,
+    /// Disable ignores support
     pub no_ignores: bool,
+    /// Initial depth to render on first scan.
     pub depth: usize,
 }
 
@@ -77,14 +88,9 @@ pub struct App {
     pub sort: SortBy,
     /// Content height.
     pub content_height: u16,
-    /// Root path for search.
-    // pub root_path: PathBuf,
-    /// Filters for search.
-    // pub filters: Arc<Vec<Filter>>,
     /// Folder events emitted by walker.
     pub folder_events: HashMap<String, FolderStat>,
-    /// true when not using ignores (.ignore, .gitignore...)
-    // pub no_ignores: bool,
+    /// Initial configuration from program launch.
     pub config: Arc<Config>,
 }
 
@@ -162,7 +168,12 @@ impl App {
         (self.content_height / Self::ITEM_HEIGHT) as usize
     }
 
-    pub fn root_folder(&self) -> &str {
-        self.config.root_path.as_path().to_str().unwrap_or("")
+    pub fn root_folder(&self) -> Cow<str> {
+        self.config
+            .root_path
+            .as_path()
+            .to_str()
+            .map(Cow::Borrowed)
+            .unwrap_or(self.config.root_path.to_string_lossy())
     }
 }
