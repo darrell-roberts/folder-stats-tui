@@ -15,7 +15,7 @@ pub struct Args {
     pub root_path: PathBuf,
 
     #[arg(short, long, default_value_t = 1, help = "Folder depth to see in Tui")]
-    pub depth: usize,
+    pub depth: u8,
 
     #[arg(short = 'f', long, value_parser = |s: &str| {
         Ok::<_, std::convert::Infallible>(Filter::FileName(s.to_string()))

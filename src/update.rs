@@ -35,12 +35,18 @@ fn handle_key_event(app: &mut App, key_event: KeyEvent, sender: mpsc::Sender<Eve
         KeyCode::Char('7') => handle_depth_change(app, 7, sender),
         KeyCode::Char('8') => handle_depth_change(app, 8, sender),
         KeyCode::Char('?') => app.show_help = !app.show_help,
+        KeyCode::Char('u') | KeyCode::Char('b') if key_event.modifiers == KeyModifiers::CONTROL => {
+            app.scroll_up(app.compute_scroll_page());
+        }
+        KeyCode::Char('d') | KeyCode::Char('f') if key_event.modifiers == KeyModifiers::CONTROL => {
+            app.scroll_down(app.compute_scroll_page());
+        }
 
         _ => (),
     }
 }
 
-fn handle_depth_change(app: &mut App, depth: usize, sender: mpsc::Sender<Event>) {
+fn handle_depth_change(app: &mut App, depth: u8, sender: mpsc::Sender<Event>) {
     if app.scanning {
         return;
     }
@@ -68,6 +74,7 @@ fn handle_sort(app: &mut App, sort_by: SortBy) {
     app.scroll_state = 0;
 }
 
+/// Main event handler.
 pub fn handle_event(app: &mut App, event: Event, sender: mpsc::Sender<Event>) {
     match event {
         Event::Key(key_event) => handle_key_event(app, key_event, sender),
