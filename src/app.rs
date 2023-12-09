@@ -46,10 +46,12 @@ pub struct Config {
     pub root_path: PathBuf,
     /// Filters for scan.
     pub filters: Vec<Filter>,
-    /// Disable ignores support
+    /// Disable ignores support.
     pub no_ignores: bool,
     /// Initial depth to render on first scan.
     pub depth: usize,
+    /// Disable showing hidden files.
+    pub show_hidden: bool,
 }
 
 impl TryFrom<Args> for Config {
@@ -61,6 +63,7 @@ impl TryFrom<Args> for Config {
         Ok(Self {
             root_path,
             no_ignores: args.no_ignores,
+            show_hidden: args.show_hidden,
             depth: args.depth,
             filters: args.filters(),
         })

@@ -1,3 +1,7 @@
+//! Uses the `ignore` crate which is a type of folder traversal
+//! that allows skpping folders via `.ignore` and `.gitignore` configuration
+//! files found while traversing.
+//!
 use crate::{
     app::{Config, Filter, FolderStat},
     event::Event,
@@ -121,6 +125,7 @@ pub fn collect_stats(sender: Sender<Event>, config: Arc<Config>, depth: Option<u
                     || entry.file_type().map(|e| e.is_dir()).unwrap_or(false)
             })
             .ignore(!config.no_ignores)
+            .hidden(!config.show_hidden)
             .git_ignore(!config.no_ignores)
             .build_parallel();
 
