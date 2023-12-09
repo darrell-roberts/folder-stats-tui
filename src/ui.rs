@@ -21,7 +21,7 @@ use std::sync::mpsc;
 pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
     let rows = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([Constraint::Length(5), Constraint::Min(10)])
+        .constraints([Constraint::Length(6), Constraint::Min(10)])
         .split(frame.size());
 
     // Only emit this once on the first render when we have a result.
@@ -86,15 +86,15 @@ fn render_help(frame: &mut Frame) {
         ]),
         Row::new(vec![
             Cell::from(Line::styled("q - ESC", blue)),
-            Cell::from(Line::styled("quit", red)),
+            Cell::from(Line::styled("Quit", red)),
         ]),
     ])
     .block(block)
     .header(Row::new(vec!["Key", "Usage"]).bottom_margin(1))
-    .widths(&[Constraint::Length(8), Constraint::Percentage(60)])
+    .widths(&[Constraint::Length(10), Constraint::Percentage(60)])
     .column_spacing(1);
 
-    let area = centered_rect(19, 28, frame.size());
+    let area = centered_rect(50, 50, frame.size());
     frame.render_widget(Clear, area);
     frame.render_widget(table, area);
 }
@@ -183,6 +183,7 @@ fn render_header(
                     Span::styled("hidden: ", blue),
                     Span::styled(format!("{}", !app.config.show_hidden), red),
                 ]),
+                Line::from("? - for help".light_blue()),
             ]
         })
         .block(
@@ -281,7 +282,7 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Percentage((100 - percent_y) / 2),
-            Constraint::Percentage(percent_y),
+            Constraint::Length(12),
             Constraint::Percentage((100 - percent_y) / 2),
         ])
         .split(r);
@@ -290,7 +291,7 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         .direction(Direction::Horizontal)
         .constraints([
             Constraint::Percentage((100 - percent_x) / 2),
-            Constraint::Percentage(percent_x),
+            Constraint::Min(35),
             Constraint::Percentage((100 - percent_x) / 2),
         ])
         .split(popup_layout[1])[1]
