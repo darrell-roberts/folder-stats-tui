@@ -10,6 +10,8 @@ A simple Tui that shows folder stats as two bar charts, one for aggregate folder
 
 ## Options
 ```
+Command line arguments
+
 Usage: folder-stats-tui [OPTIONS]
 
 Options:
@@ -18,6 +20,7 @@ Options:
   -f, --filter <FILTER>               Filter files that contain text
   -e, --extension <EXTENSION_FILTER>  Filter by file extension. Ex: -e rs
   -i, --no-ignores                    Disable .ignore, .gitignore filtering
+      --show-hidden                   Disable hidden file filtering
   -h, --help                          Print help
 ```
 

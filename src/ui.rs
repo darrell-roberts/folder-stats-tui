@@ -57,7 +57,7 @@ fn render_help(frame: &mut Frame) {
         .title_alignment(Alignment::Center);
     let table = Table::new(vec![
         Row::new(vec![
-            Cell::from(Line::styled("1 - 8", blue)),
+            Cell::from(Line::styled("1..8", blue)),
             Cell::from(Line::styled("Change folder depth", red)),
         ]),
         Row::new(vec![
@@ -179,7 +179,9 @@ fn render_header(
                         red,
                     ),
                     Span::styled("ignores: ", blue),
-                    Span::styled(format!("{}", !app.config.no_ignores), red),
+                    Span::styled(format!("{} ", !app.config.no_ignores), red),
+                    Span::styled("hidden: ", blue),
+                    Span::styled(format!("{}", !app.config.show_hidden), red),
                 ]),
             ]
         })
