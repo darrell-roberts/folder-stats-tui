@@ -9,7 +9,8 @@ pub struct Args {
         short = 'p',
         long = "path",
         default_value = ".",
-        help = "Folder to scan."
+        help = "Folder to scan.",
+        id = "PATH"
     )]
     pub root_path: PathBuf,
 
@@ -18,7 +19,7 @@ pub struct Args {
 
     #[arg(short = 'f', long, value_parser = |s: &str| {
         Ok::<_, std::convert::Infallible>(Filter::FileName(s.to_string()))
-    }, help = "Filter files that contain text")]
+    }, id = "FILENAME_FILTER", help = "Filter files that contain text")]
     pub filter: Option<Filter>,
 
     #[arg(short = 'e', long = "extension", value_parser = |s: &str| {
