@@ -2,6 +2,7 @@ use crate::app::Filter;
 use clap::Parser;
 use std::path::PathBuf;
 
+/// Command line arguments.
 #[derive(Debug, Parser)]
 pub struct Args {
     #[arg(
@@ -32,9 +33,13 @@ pub struct Args {
         help = "Disable .ignore, .gitignore filtering"
     )]
     pub no_ignores: bool,
+
+    #[arg(long, default_value_t = false, help = "Disable hidden file filtering")]
+    pub show_hidden: bool,
 }
 
 impl Args {
+    /// Consume args and produce [`Vec<Filter>`].
     pub fn filters(self) -> Vec<Filter> {
         self.filter
             .into_iter()
