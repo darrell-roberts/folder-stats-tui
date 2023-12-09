@@ -92,6 +92,8 @@ pub struct App {
     pub folder_events: HashMap<String, FolderStat>,
     /// Initial configuration from program launch.
     pub config: Arc<Config>,
+    /// Show help popup.
+    pub show_help: bool,
 }
 
 impl App {

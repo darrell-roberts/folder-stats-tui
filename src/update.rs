@@ -8,14 +8,20 @@ use std::sync::mpsc;
 
 fn handle_key_event(app: &mut App, key_event: KeyEvent, sender: mpsc::Sender<Event>) {
     match key_event.code {
-        KeyCode::Esc | KeyCode::Char('q') => app.quit(),
+        KeyCode::Esc | KeyCode::Char('q') => {
+            if app.show_help {
+                app.show_help = false;
+            } else {
+                app.quit();
+            }
+        }
         KeyCode::Char('c') | KeyCode::Char('C') if key_event.modifiers == KeyModifiers::CONTROL => {
             app.quit()
         }
         KeyCode::Char('s') => handle_sort(app, SortBy::FileSize),
         KeyCode::Char('c') => handle_sort(app, SortBy::FileCount),
-        KeyCode::Up => app.scroll_up(1),
-        KeyCode::Down => app.scroll_down(1),
+        KeyCode::Up | KeyCode::Char('k') => app.scroll_up(1),
+        KeyCode::Down | KeyCode::Char('j') => app.scroll_down(1),
         KeyCode::PageUp => app.scroll_up(app.compute_scroll_page()),
         KeyCode::PageDown => app.scroll_down(app.compute_scroll_page()),
         KeyCode::Home => app.scroll_state = 0,
@@ -28,6 +34,8 @@ fn handle_key_event(app: &mut App, key_event: KeyEvent, sender: mpsc::Sender<Eve
         KeyCode::Char('6') => handle_depth_change(app, 6, sender),
         KeyCode::Char('7') => handle_depth_change(app, 7, sender),
         KeyCode::Char('8') => handle_depth_change(app, 8, sender),
+        KeyCode::Char('?') => app.show_help = !app.show_help,
+
         _ => (),
     }
 }
