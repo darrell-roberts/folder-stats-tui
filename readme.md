@@ -24,4 +24,7 @@ Options:
   -h, --help                          Print help
 ```
 
-<img width="1344" alt="image" src="https://github.com/darrell-roberts/folder-stats-tui/assets/33698065/80a7c528-e589-4705-9120-6b64be17f348">
+<img width="1234" alt="image" src="https://github.com/darrell-roberts/folder-stats-tui/assets/33698065/e89e44ac-1ea3-47df-8d03-93a54da27376">
+
+<img width="1234" alt="image" src="https://github.com/darrell-roberts/folder-stats-tui/assets/33698065/a20c2137-0469-4abe-ac6c-943da2dffab1">
+
