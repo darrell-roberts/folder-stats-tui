@@ -5,12 +5,13 @@ use crate::{
 use bytesize::ByteSize;
 use log::error;
 use ratatui::{
-    layout::{Constraint, Direction, Layout, Margin},
+    layout::{Alignment, Constraint, Direction, Layout, Margin},
+    prelude::Rect,
     style::{Color, Style, Stylize},
     text::{Line, Span},
     widgets::{
-        Bar, BarChart, BarGroup, Block, BorderType, Borders, Paragraph, Scrollbar,
-        ScrollbarOrientation, ScrollbarState,
+        Bar, BarChart, BarGroup, Block, BorderType, Borders, Cell, Clear, Paragraph, Row,
+        Scrollbar, ScrollbarOrientation, ScrollbarState, Table,
     },
     Frame,
 };
@@ -39,6 +40,72 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
         .map(|(_, v)| (v.size, v.files))
         .unwrap_or_default();
 
+    render_header(app, frame, rows[0], total_files, total_size);
+    render_content(app, frame, rows[1], total_size, total_files);
+
+    if app.show_help {
+        render_help(frame);
+    }
+}
+
+fn render_help(frame: &mut Frame) {
+    let blue = Style::default().light_blue();
+    let red = Style::default().red();
+    let block = Block::default()
+        .title("Help")
+        .borders(Borders::ALL)
+        .title_alignment(Alignment::Center);
+    let table = Table::new(vec![
+        Row::new(vec![
+            Cell::from(Line::styled("1 - 8", blue)),
+            Cell::from(Line::styled("Change folder depth", red)),
+        ]),
+        Row::new(vec![
+            Cell::from(Line::styled("c", blue)),
+            Cell::from(Line::styled("Sort by file count", red)),
+        ]),
+        Row::new(vec![
+            Cell::from(Line::styled("s", blue)),
+            Cell::from(Line::styled("Sort by file size", red)),
+        ]),
+        Row::new(vec![
+            Cell::from(Line::styled("k - up", blue)),
+            Cell::from(Line::styled("Up", red)),
+        ]),
+        Row::new(vec![
+            Cell::from(Line::styled("j - down", blue)),
+            Cell::from(Line::styled("Down", red)),
+        ]),
+        Row::new(vec![
+            Cell::from(Line::styled("pgup", blue)),
+            Cell::from(Line::styled("Page Up", red)),
+        ]),
+        Row::new(vec![
+            Cell::from(Line::styled("pgdn", blue)),
+            Cell::from(Line::styled("Page Down", red)),
+        ]),
+        Row::new(vec![
+            Cell::from(Line::styled("q - ESC", blue)),
+            Cell::from(Line::styled("quit", red)),
+        ]),
+    ])
+    .block(block)
+    .header(Row::new(vec!["Key", "Usage"]).bottom_margin(1))
+    .widths(&[Constraint::Length(8), Constraint::Percentage(60)])
+    .column_spacing(1);
+
+    let area = centered_rect(19, 28, frame.size());
+    frame.render_widget(Clear, area);
+    frame.render_widget(table, area);
+}
+
+fn render_header(
+    app: &App,
+    frame: &mut Frame,
+    row: ratatui::prelude::Rect,
+    total_files: usize,
+    total_size: u64,
+) {
     frame.render_widget(
         Paragraph::new(if app.scanning {
             vec![Line::from(vec![
@@ -127,12 +194,9 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
                 .border_type(BorderType::Rounded)
                 .border_style(Style::default().fg(Color::DarkGray)),
         ),
-        rows[0],
+        row,
     );
-
-    render_content(app, frame, rows[1], total_size, total_files);
 }
-
 /// Render the content section.
 fn render_content(
     app: &App,
@@ -208,4 +272,24 @@ fn render_content(
         }),
         &mut scrollbar_state,
     );
+}
+
+fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    let popup_layout = Layout::default()
+        .direction(Direction::Vertical)
+        .constraints([
+            Constraint::Percentage((100 - percent_y) / 2),
+            Constraint::Percentage(percent_y),
+            Constraint::Percentage((100 - percent_y) / 2),
+        ])
+        .split(r);
+
+    Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage((100 - percent_x) / 2),
+            Constraint::Percentage(percent_x),
+            Constraint::Percentage((100 - percent_x) / 2),
+        ])
+        .split(popup_layout[1])[1]
 }
