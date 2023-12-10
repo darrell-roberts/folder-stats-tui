@@ -8,16 +8,16 @@ A simple Tui that shows folder stats as two bar charts, one for aggregate folder
 * Sort folders by file size or file count (keys "s" for size and "c" for count in Tui).
 * Key "q" to quit Tui.
 
-## Options
+## Arguments 
 ```
 Command line arguments
 
 Usage: folder-stats-tui [OPTIONS]
 
 Options:
-  -p, --path <ROOT_PATH>              Folder to scan. [default: .]
+  -p, --path <PATH>                   Folder to scan. [default: .]
   -d, --depth <DEPTH>                 Folder depth to see in Tui [default: 1]
-  -f, --filter <FILTER>               Filter files that contain text
+  -f, --filter <FILENAME_FILTER>      Filter files that contain text
   -e, --extension <EXTENSION_FILTER>  Filter by file extension. Ex: -e rs
   -i, --no-ignores                    Disable .ignore, .gitignore filtering
       --show-hidden                   Disable hidden file filtering

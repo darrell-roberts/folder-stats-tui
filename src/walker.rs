@@ -18,7 +18,7 @@ use std::{
 struct MyParallelVisitor {
     root_path_bytes: Vec<u8>,
     sender: Sender<Event>,
-    depth: usize,
+    depth: u8,
     results: HashMap<String, FolderStat>,
 }
 
@@ -50,7 +50,7 @@ impl ParallelVisitor for MyParallelVisitor {
                     let parents = entry
                         .path()
                         .ancestors()
-                        .skip(entry.depth().checked_sub(self.depth).unwrap_or(1))
+                        .skip(entry.depth().checked_sub(self.depth as usize).unwrap_or(1))
                         .filter(|p| !p.is_symlink() && p.is_dir())
                         .flat_map(|p| p.as_os_str().to_str())
                         .take_while(|p| p.as_bytes().starts_with(&self.root_path_bytes));
@@ -87,7 +87,7 @@ impl Drop for MyParallelVisitor {
 /// Parallel visitor builder.
 struct MyVisitorBuilder {
     sender: Sender<Event>,
-    depth: usize,
+    depth: u8,
     root_path_bytes: Vec<u8>,
 }
 
@@ -114,7 +114,7 @@ impl Drop for MyVisitorBuilder {
 /// Spawn a thread that will configure and launch the ignore parallel walker. Each
 /// visitor will collect it's results and then emit them when dropped. The builder
 /// emits a traversal completed event when it is dropped.
-pub fn collect_stats(sender: Sender<Event>, config: Arc<Config>, depth: Option<usize>) {
+pub fn collect_stats(sender: Sender<Event>, config: Arc<Config>, depth: Option<u8>) {
     std::thread::spawn(move || {
         let c = config.clone();
         let walker = WalkBuilder::new(&config.root_path)
