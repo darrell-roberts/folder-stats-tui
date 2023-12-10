@@ -49,7 +49,7 @@ pub struct Config {
     /// Disable ignores support.
     pub no_ignores: bool,
     /// Initial depth to render on first scan.
-    pub depth: usize,
+    pub depth: u8,
     /// Disable showing hidden files.
     pub show_hidden: bool,
 }
@@ -86,7 +86,7 @@ pub struct App {
     /// True if we are scanning folders.
     pub scanning: bool,
     /// Depth to report on.
-    pub depth: usize,
+    pub depth: u8,
     /// Sorting of folders.
     pub sort: SortBy,
     /// Content height.
@@ -101,7 +101,7 @@ pub struct App {
 
 impl App {
     /// Height of a rendered item.
-    pub const ITEM_HEIGHT: u16 = 4;
+    pub const FOLDER_ITEM_HEIGHT: u16 = 4;
 
     /// Create a new [`App`].
     pub fn new(config: Arc<Config>) -> Self {
@@ -154,7 +154,7 @@ impl App {
     pub fn compute_max_scroll(&mut self) {
         if self
             .content_height
-            .checked_div(Self::ITEM_HEIGHT)
+            .checked_div(Self::FOLDER_ITEM_HEIGHT)
             .unwrap_or(self.content_height) as usize
             > self.scan_result.len()
         {
@@ -162,7 +162,7 @@ impl App {
         } else {
             self.max_scroll = self
                 .content_height
-                .checked_div(Self::ITEM_HEIGHT)
+                .checked_div(Self::FOLDER_ITEM_HEIGHT)
                 .and_then(|sub| self.scan_result.len().checked_sub(sub as usize))
                 .unwrap_or(self.scan_result.len());
         }
@@ -170,7 +170,7 @@ impl App {
 
     /// Compute the number of scroll state units for a full page.
     pub fn compute_scroll_page(&self) -> usize {
-        (self.content_height / Self::ITEM_HEIGHT) as usize
+        (self.content_height / Self::FOLDER_ITEM_HEIGHT) as usize
     }
 
     pub fn root_folder(&self) -> Cow<str> {

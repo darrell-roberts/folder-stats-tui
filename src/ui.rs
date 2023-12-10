@@ -69,29 +69,29 @@ fn render_help(frame: &mut Frame) {
             Cell::from(Line::styled("Sort by file size", red)),
         ]),
         Row::new(vec![
-            Cell::from(Line::styled("k - up", blue)),
+            Cell::from(Line::styled("k / up", blue)),
             Cell::from(Line::styled("Up", red)),
         ]),
         Row::new(vec![
-            Cell::from(Line::styled("j - down", blue)),
+            Cell::from(Line::styled("j / down", blue)),
             Cell::from(Line::styled("Down", red)),
         ]),
         Row::new(vec![
-            Cell::from(Line::styled("pgup", blue)),
+            Cell::from(Line::styled("pgup / ctrl b / ctrl u", blue)),
             Cell::from(Line::styled("Page Up", red)),
         ]),
         Row::new(vec![
-            Cell::from(Line::styled("pgdn", blue)),
+            Cell::from(Line::styled("pgdn / ctrl d / ctrl f", blue)),
             Cell::from(Line::styled("Page Down", red)),
         ]),
         Row::new(vec![
-            Cell::from(Line::styled("q - ESC", blue)),
+            Cell::from(Line::styled("q / ESC", blue)),
             Cell::from(Line::styled("Quit", red)),
         ]),
     ])
     .block(block)
     .header(Row::new(vec!["Key", "Usage"]).bottom_margin(1))
-    .widths(&[Constraint::Length(10), Constraint::Percentage(60)])
+    .widths(&[Constraint::Length(22), Constraint::Percentage(60)])
     .column_spacing(1);
 
     let area = centered_rect(50, 50, frame.size());
@@ -220,6 +220,7 @@ fn render_content(
         .enumerate()
         .skip(app.scroll_state + 1)
         .map(|(index, (name, stats))| {
+            // Get the percentage for each measurement.
             let bar_file_size = (stats.size as f32 / total_size as f32) * 100.;
             let bar_file_num = (stats.files as f32 / total_files as f32) * 100.;
             let bars = &[
@@ -240,7 +241,7 @@ fn render_content(
 
     let mut scrollbar_state = ScrollbarState::new(app.max_scroll)
         .position(app.scroll_state)
-        .viewport_content_length(App::ITEM_HEIGHT as usize);
+        .viewport_content_length(App::FOLDER_ITEM_HEIGHT as usize);
 
     let mut chart = BarChart::default()
         .direction(Direction::Horizontal)
@@ -291,7 +292,7 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         .direction(Direction::Horizontal)
         .constraints([
             Constraint::Percentage((100 - percent_x) / 2),
-            Constraint::Min(35),
+            Constraint::Min(45),
             Constraint::Percentage((100 - percent_x) / 2),
         ])
         .split(popup_layout[1])[1]
