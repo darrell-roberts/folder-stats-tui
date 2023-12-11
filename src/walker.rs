@@ -8,21 +8,17 @@ use crate::{
 };
 use ignore::{DirEntry, ParallelVisitor, ParallelVisitorBuilder, WalkBuilder, WalkState};
 use log::error;
-use std::{
-    collections::HashMap,
-    os::unix::ffi::OsStrExt,
-    sync::{mpsc::Sender, Arc},
-};
+use std::{collections::HashMap, os::unix::ffi::OsStrExt, sync::mpsc::Sender};
 
 /// Path visitor for each parallel thread worker.
-struct MyParallelVisitor {
-    root_path_bytes: Vec<u8>,
+struct MyParallelVisitor<'a> {
+    root_path_bytes: &'a [u8],
     sender: Sender<Event>,
     depth: u8,
     results: HashMap<String, FolderStat>,
 }
 
-impl MyParallelVisitor {
+impl<'a> MyParallelVisitor<'a> {
     /// Convert the cannonical path into a relative path.
     fn truncate_root(&self, path: &str) -> String {
         let (_, path) = path.split_at(self.root_path_bytes.len());
@@ -30,7 +26,7 @@ impl MyParallelVisitor {
     }
 }
 
-impl ParallelVisitor for MyParallelVisitor {
+impl<'a> ParallelVisitor for MyParallelVisitor<'a> {
     /// Visit each directory entry.
     fn visit(&mut self, result: Result<DirEntry, ignore::Error>) -> WalkState {
         match result {
@@ -75,7 +71,7 @@ impl ParallelVisitor for MyParallelVisitor {
     }
 }
 
-impl Drop for MyParallelVisitor {
+impl<'a> Drop for MyParallelVisitor<'a> {
     fn drop(&mut self) {
         let results = std::mem::take(&mut self.results);
         if let Err(err) = self.sender.send(Event::FolderEvent(results)) {
@@ -85,25 +81,25 @@ impl Drop for MyParallelVisitor {
 }
 
 /// Parallel visitor builder.
-struct MyVisitorBuilder {
+struct MyVisitorBuilder<'a> {
     sender: Sender<Event>,
     depth: u8,
-    root_path_bytes: Vec<u8>,
+    root_path_bytes: &'a [u8],
 }
 
-impl<'s> ParallelVisitorBuilder<'s> for MyVisitorBuilder {
+impl<'a> ParallelVisitorBuilder<'a> for MyVisitorBuilder<'a> {
     /// Build an [`ignore::ParallelVisitor`].
-    fn build(&mut self) -> Box<dyn ignore::ParallelVisitor + 's> {
+    fn build(&mut self) -> Box<dyn ignore::ParallelVisitor + 'a> {
         Box::new(MyParallelVisitor {
             sender: self.sender.clone(),
             depth: self.depth,
-            root_path_bytes: self.root_path_bytes.clone(),
+            root_path_bytes: &self.root_path_bytes,
             results: HashMap::new(),
         })
     }
 }
 
-impl Drop for MyVisitorBuilder {
+impl<'a> Drop for MyVisitorBuilder<'a> {
     fn drop(&mut self) {
         if let Err(err) = self.sender.send(Event::ScanComplete) {
             error!("Failed to emit scan complete {err}");
@@ -114,7 +110,7 @@ impl Drop for MyVisitorBuilder {
 /// Spawn a thread that will configure and launch the ignore parallel walker. Each
 /// visitor will collect it's results and then emit them when dropped. The builder
 /// emits a traversal completed event when it is dropped.
-pub fn collect_stats(sender: Sender<Event>, config: Arc<Config>, depth: Option<u8>) {
+pub fn collect_stats(sender: Sender<Event>, config: Config) {
     std::thread::spawn(move || {
         let c = config.clone();
         let walker = WalkBuilder::new(&config.root_path)
@@ -133,8 +129,8 @@ pub fn collect_stats(sender: Sender<Event>, config: Arc<Config>, depth: Option<u
 
         let mut my_builder = MyVisitorBuilder {
             sender,
-            depth: depth.unwrap_or(config.depth),
-            root_path_bytes,
+            depth: config.depth,
+            root_path_bytes: &root_path_bytes,
         };
 
         walker.visit(&mut my_builder);

@@ -25,6 +25,4 @@ Options:
 ```
 
 <img width="1234" alt="image" src="https://github.com/darrell-roberts/folder-stats-tui/assets/33698065/e89e44ac-1ea3-47df-8d03-93a54da27376">
-
-<img width="1234" alt="image" src="https://github.com/darrell-roberts/folder-stats-tui/assets/33698065/a20c2137-0469-4abe-ac6c-943da2dffab1">
-
+<img width="1203" alt="image" src="https://github.com/darrell-roberts/folder-stats-tui/assets/33698065/9518a2e4-3627-48c0-9f2c-9fa4d3596c87">
