@@ -1,5 +1,5 @@
 use crate::args::Args;
-use std::{borrow::Cow, collections::HashMap, path::PathBuf, sync::Arc};
+use std::{borrow::Cow, cmp::Reverse, collections::HashMap, path::PathBuf};
 
 /// Sorting options for folders
 #[derive(Debug, Copy, Clone, Default)]
@@ -40,12 +40,12 @@ pub struct FolderStat {
 
 /// Application configuration sourced
 /// from command line argument options.
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Copy)]
 pub struct Config {
     /// Path to scan.
-    pub root_path: PathBuf,
+    pub root_path: &'static PathBuf,
     /// Filters for scan.
-    pub filters: Vec<Filter>,
+    pub filters: &'static [Filter],
     /// Disable ignores support.
     pub no_ignores: bool,
     /// Initial depth to render on first scan.
@@ -58,20 +58,18 @@ impl TryFrom<Args> for Config {
     type Error = anyhow::Error;
 
     fn try_from(args: Args) -> Result<Self, Self::Error> {
-        let root_path = args.root_path.canonicalize()?;
-
         Ok(Self {
-            root_path,
+            root_path: Box::leak(Box::new(args.root_path.canonicalize()?)),
             no_ignores: args.no_ignores,
             show_hidden: args.show_hidden,
             depth: args.depth,
-            filters: args.filters(),
+            filters: Box::leak(Box::new(args.filters())),
         })
     }
 }
 
 /// Application State.
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct App {
     /// Name of the folder being scanned.
     pub folder_name: String,
@@ -94,7 +92,7 @@ pub struct App {
     /// Folder events emitted by walker.
     pub folder_events: HashMap<String, FolderStat>,
     /// Initial configuration from program launch.
-    pub config: Arc<Config>,
+    pub config: Config,
     /// Show help popup.
     pub show_help: bool,
 }
@@ -104,12 +102,20 @@ impl App {
     pub const FOLDER_ITEM_HEIGHT: u16 = 4;
 
     /// Create a new [`App`].
-    pub fn new(config: Arc<Config>) -> Self {
+    pub fn new(config: Config) -> Self {
         Self {
             scanning: true,
             depth: config.depth,
             config,
-            ..Default::default()
+            folder_name: String::new(),
+            scan_result: Vec::new(),
+            should_quit: false,
+            scroll_state: 0,
+            max_scroll: 0,
+            sort: SortBy::default(),
+            content_height: 0,
+            folder_events: HashMap::new(),
+            show_help: false,
         }
     }
 
@@ -121,7 +127,7 @@ impl App {
     /// Update state with scan results.
     pub fn update_scan_result(&mut self, result: HashMap<String, FolderStat>) {
         let mut file_rows = result.into_iter().collect::<Vec<_>>();
-        file_rows.sort_unstable_by_key(|(_, v)| v.size);
+        file_rows.sort_unstable_by_key(|(_, v)| Reverse(v.size));
         self.sort = SortBy::FileSize;
         self.scan_result = file_rows;
         self.scroll_state = 0;
