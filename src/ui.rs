@@ -36,7 +36,7 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
     let (total_size, total_files) = app
         .scan_result
         .iter()
-        .last()
+        .next()
         .map(|(_, v)| (v.size, v.files))
         .unwrap_or_default();
 
@@ -67,6 +67,14 @@ fn render_help(frame: &mut Frame) {
         Row::new(vec![
             Cell::from(Line::styled("s", blue)),
             Cell::from(Line::styled("Sort by file size", red)),
+        ]),
+        Row::new(vec![
+            Cell::from(Line::styled("i", blue)),
+            Cell::from(Line::styled("Toggle ignores", red)),
+        ]),
+        Row::new(vec![
+            Cell::from(Line::styled("h", blue)),
+            Cell::from(Line::styled("Toggle show hidden", red)),
         ]),
         Row::new(vec![
             Cell::from(Line::styled("k / up", blue)),
@@ -139,43 +147,34 @@ fn render_header(
                     Span::styled(format!("{} ", &app.depth), red),
                     Span::styled("Filter: ", blue),
                     Span::styled(
-                        format!(
-                            "{} ",
-                            app.config
+                        format!("{} ", {
+                            let names = app
+                                .config
                                 .filters
                                 .iter()
-                                .filter_map(|f| {
-                                    match f {
-                                        Filter::FileName(s) => Some(s),
-                                        Filter::Extension(_) => None,
-                                    }
+                                .filter_map(|f| match f {
+                                    Filter::FileName(s) => Some(s.as_str()),
+                                    Filter::Extension(_) => None,
                                 })
-                                .fold(String::new(), |mut filter, f| {
-                                    filter.push_str(f);
-                                    filter
-                                })
-                        ),
+                                .collect::<Vec<_>>();
+                            names.as_slice().join(",")
+                        }),
                         red,
                     ),
                     Span::styled("Extension Filter: ", blue),
                     Span::styled(
-                        format!(
-                            "{} ",
-                            app.config
+                        format!("{} ", {
+                            let extensions = app
+                                .config
                                 .filters
                                 .iter()
-                                .filter_map(|f| {
-                                    match f {
-                                        Filter::FileName(_) => None,
-                                        Filter::Extension(s) => Some(s),
-                                    }
+                                .filter_map(|f| match f {
+                                    Filter::FileName(_) => None,
+                                    Filter::Extension(s) => Some(s.as_str()),
                                 })
-                                .fold(String::new(), |mut filter, f| {
-                                    filter.push('.');
-                                    filter.push_str(f);
-                                    filter
-                                })
-                        ),
+                                .collect::<Vec<_>>();
+                            extensions.as_slice().join(",")
+                        }),
                         red,
                     ),
                     Span::styled("ignores: ", blue),
@@ -216,7 +215,6 @@ fn render_content(
     let bar_groups = app
         .scan_result
         .iter()
-        .rev()
         .enumerate()
         .skip(app.scroll_state + 1)
         .map(|(index, (name, stats))| {
@@ -283,7 +281,7 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
         .direction(Direction::Vertical)
         .constraints([
             Constraint::Percentage((100 - percent_y) / 2),
-            Constraint::Length(12),
+            Constraint::Length(14),
             Constraint::Percentage((100 - percent_y) / 2),
         ])
         .split(r);

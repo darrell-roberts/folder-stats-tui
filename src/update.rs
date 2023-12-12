@@ -4,7 +4,7 @@ use crate::{
     walker::collect_stats,
 };
 use crossterm::event::{KeyCode, KeyEvent, KeyModifiers, MouseEvent};
-use std::sync::mpsc;
+use std::{cmp::Reverse, sync::mpsc};
 
 fn handle_key_event(app: &mut App, key_event: KeyEvent, sender: mpsc::Sender<Event>) {
     match key_event.code {
@@ -41,6 +41,8 @@ fn handle_key_event(app: &mut App, key_event: KeyEvent, sender: mpsc::Sender<Eve
         KeyCode::Char('d') | KeyCode::Char('f') if key_event.modifiers == KeyModifiers::CONTROL => {
             app.scroll_down(app.compute_scroll_page());
         }
+        KeyCode::Char('i') => toggle_ignores(app, sender),
+        KeyCode::Char('h') => toggle_hidden(app, sender),
 
         _ => (),
     }
@@ -51,9 +53,28 @@ fn handle_depth_change(app: &mut App, depth: u8, sender: mpsc::Sender<Event>) {
         return;
     }
     app.scanning = true;
-    app.depth = depth;
+    app.config.depth = depth;
 
-    collect_stats(sender, app.config.clone(), Some(depth));
+    collect_stats(sender, app.config.clone());
+}
+
+fn toggle_ignores(app: &mut App, sender: mpsc::Sender<Event>) {
+    if app.scanning {
+        return;
+    }
+    app.config.no_ignores = !app.config.no_ignores;
+    app.scanning = true;
+
+    collect_stats(sender, app.config.clone());
+}
+
+fn toggle_hidden(app: &mut App, sender: mpsc::Sender<Event>) {
+    if app.scanning {
+        return;
+    }
+    app.scanning = true;
+    app.config.show_hidden = !app.config.show_hidden;
+    collect_stats(sender, app.config.clone());
 }
 
 fn handle_mouse_event(app: &mut App, mouse_event: MouseEvent) {
@@ -66,11 +87,12 @@ fn handle_mouse_event(app: &mut App, mouse_event: MouseEvent) {
 
 fn handle_sort(app: &mut App, sort_by: SortBy) {
     app.sort = sort_by;
-    app.scan_result
-        .sort_unstable_by_key(|(_, stats)| match sort_by {
+    app.scan_result.sort_unstable_by_key(|(_, stats)| {
+        Reverse(match sort_by {
             SortBy::FileSize => stats.size as usize,
             SortBy::FileCount => stats.files,
-        });
+        })
+    });
     app.scroll_state = 0;
 }
 
@@ -84,18 +106,16 @@ pub fn handle_event(app: &mut App, event: Event, sender: mpsc::Sender<Event>) {
             let mut sorted_result = std::mem::take(&mut app.folder_events)
                 .into_iter()
                 .collect::<Vec<_>>();
-            sorted_result.sort_unstable_by_key(|(_, stat)| stat.size);
+            sorted_result.sort_unstable_by_key(|(_, stat)| Reverse(stat.size));
             app.scan_result = sorted_result;
             app.compute_max_scroll();
         }
         Event::Mouse(mouse_event) => handle_mouse_event(app, mouse_event),
         Event::Resize(_, h) => {
-            // debug!("Resized window height {h}");
             app.content_height = h.checked_sub(5).unwrap_or(h);
             app.compute_max_scroll();
         }
         Event::ContentFrameSize(h) => {
-            // debug!("Initial content height {h}");
             app.content_height = h.checked_sub(2).unwrap_or(h);
             app.compute_max_scroll()
         }

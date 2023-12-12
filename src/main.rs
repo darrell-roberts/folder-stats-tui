@@ -6,7 +6,6 @@ use event::EventHandler;
 use flexi_logger::{FileSpec, Logger};
 use log::error;
 use ratatui::{backend::CrosstermBackend, Terminal};
-use std::sync::Arc;
 use tui::Tui;
 use update::handle_event;
 use walker::collect_stats;
@@ -27,7 +26,7 @@ fn main() -> Result<()> {
 
     let args = Args::parse();
 
-    let config: Arc<Config> = Arc::new(args.try_into()?);
+    let config = Config::try_from(args)?;
 
     let backend = CrosstermBackend::new(std::io::stderr());
     let terminal = Terminal::new(backend)?;
@@ -44,7 +43,7 @@ fn main() -> Result<()> {
         error!("Failed to draw tui: {err}");
     }
 
-    collect_stats(sender, config.clone(), None);
+    collect_stats(sender, config);
 
     // Main event loop.
     while !app.should_quit {

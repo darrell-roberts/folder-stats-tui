@@ -20,12 +20,12 @@ pub struct Args {
     #[arg(short = 'f', long, value_parser = |s: &str| {
         Ok::<_, std::convert::Infallible>(Filter::FileName(s.to_string()))
     }, id = "FILENAME_FILTER", help = "Filter files that contain text")]
-    pub filter: Option<Filter>,
+    pub filter: Vec<Filter>,
 
     #[arg(short = 'e', long = "extension", value_parser = |s: &str| {
         Ok::<_, std::convert::Infallible>(Filter::Extension(s.to_string()))
     }, help = "Filter by file extension. Ex: -e rs")]
-    pub extension_filter: Option<Filter>,
+    pub extension_filter: Vec<Filter>,
 
     #[arg(
         short = 'i',
