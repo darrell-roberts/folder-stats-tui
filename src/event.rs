@@ -63,21 +63,19 @@ impl EventHandler {
                     });
                     if poll {
                         match event::read() {
-                            Ok(e) => {
-                                let r = match e {
-                                    event::Event::Key(e) => {
-                                        if e.kind == event::KeyEventKind::Press {
-                                            sender.send(Event::Key(e))
-                                        } else {
-                                            Ok(())
-                                        }
+                            Ok(event) => {
+                                let status = match event {
+                                    event::Event::Key(e)
+                                        if e.kind == event::KeyEventKind::Press =>
+                                    {
+                                        sender.send(Event::Key(e))
                                     }
                                     event::Event::Mouse(e) => sender.send(Event::Mouse(e)),
                                     event::Event::Resize(w, h) => sender.send(Event::Resize(w, h)),
                                     _ => Ok(()),
                                 };
 
-                                if let Err(err) = r {
+                                if let Err(err) = status {
                                     error!("Failed to send event: {err}");
                                 }
                             }
