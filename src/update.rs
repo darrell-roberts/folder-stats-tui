@@ -55,7 +55,7 @@ fn handle_depth_change(app: &mut App, depth: u8, sender: mpsc::Sender<Event>) {
     app.scanning = true;
     app.config.depth = depth;
 
-    collect_stats(sender, app.config.clone());
+    collect_stats(sender, app.config);
 }
 
 fn toggle_ignores(app: &mut App, sender: mpsc::Sender<Event>) {
@@ -65,7 +65,7 @@ fn toggle_ignores(app: &mut App, sender: mpsc::Sender<Event>) {
     app.config.no_ignores = !app.config.no_ignores;
     app.scanning = true;
 
-    collect_stats(sender, app.config.clone());
+    collect_stats(sender, app.config);
 }
 
 fn toggle_hidden(app: &mut App, sender: mpsc::Sender<Event>) {
@@ -74,7 +74,7 @@ fn toggle_hidden(app: &mut App, sender: mpsc::Sender<Event>) {
     }
     app.scanning = true;
     app.config.show_hidden = !app.config.show_hidden;
-    collect_stats(sender, app.config.clone());
+    collect_stats(sender, app.config);
 }
 
 fn handle_mouse_event(app: &mut App, mouse_event: MouseEvent) {

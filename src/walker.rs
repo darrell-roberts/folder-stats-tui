@@ -49,7 +49,7 @@ impl<'a> ParallelVisitor for MyParallelVisitor<'a> {
                         .skip(entry.depth().checked_sub(self.depth as usize).unwrap_or(1))
                         .filter(|p| !p.is_symlink() && p.is_dir())
                         .flat_map(|p| p.as_os_str().to_str())
-                        .take_while(|p| p.as_bytes().starts_with(&self.root_path_bytes));
+                        .take_while(|p| p.as_bytes().starts_with(self.root_path_bytes));
 
                     for parent in parents {
                         self.results
@@ -93,7 +93,7 @@ impl<'a> ParallelVisitorBuilder<'a> for MyVisitorBuilder<'a> {
         Box::new(MyParallelVisitor {
             sender: self.sender.clone(),
             depth: self.depth,
-            root_path_bytes: &self.root_path_bytes,
+            root_path_bytes: self.root_path_bytes,
             results: HashMap::new(),
         })
     }
@@ -112,12 +112,12 @@ impl<'a> Drop for MyVisitorBuilder<'a> {
 /// emits a traversal completed event when it is dropped.
 pub fn collect_stats(sender: Sender<Event>, config: Config) {
     std::thread::spawn(move || {
-        let c = config.clone();
-        let walker = WalkBuilder::new(&config.root_path)
+        let c = config;
+        let walker = WalkBuilder::new(config.root_path)
             .filter_entry(move |entry| {
                 (entry.file_type().map(|e| e.is_file()).unwrap_or(false)
-                    && check_filename_filter(entry, &c.filters)
-                    && check_file_extension_filter(entry, &c.filters))
+                    && check_filename_filter(entry, c.filters)
+                    && check_file_extension_filter(entry, c.filters))
                     || entry.file_type().map(|e| e.is_dir()).unwrap_or(false)
             })
             .ignore(!config.no_ignores)
