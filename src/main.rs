@@ -34,7 +34,7 @@ fn main() -> Result<()> {
     let sender = event_handler.sender();
     let mut tui = Tui::new(terminal, event_handler)?;
 
-    let mut app = App::new(config.clone());
+    let mut app = App::new(config);
 
     tui.enter()?;
 

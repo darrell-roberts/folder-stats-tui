@@ -35,8 +35,7 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
     // total files.
     let (total_size, total_files) = app
         .scan_result
-        .iter()
-        .next()
+        .first()
         .map(|(_, v)| (v.size, v.files))
         .unwrap_or_default();
 
