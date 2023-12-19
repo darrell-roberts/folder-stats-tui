@@ -55,51 +55,53 @@ fn render_help(frame: &mut Frame) {
         .title("Help")
         .borders(Borders::ALL)
         .title_alignment(Alignment::Center);
-    let table = Table::new(vec![
-        Row::new(vec![
-            Cell::from(Line::styled("1..8", blue)),
-            Cell::from(Line::styled("Change folder depth", red)),
-        ]),
-        Row::new(vec![
-            Cell::from(Line::styled("c", blue)),
-            Cell::from(Line::styled("Sort by file count", red)),
-        ]),
-        Row::new(vec![
-            Cell::from(Line::styled("s", blue)),
-            Cell::from(Line::styled("Sort by file size", red)),
-        ]),
-        Row::new(vec![
-            Cell::from(Line::styled("i", blue)),
-            Cell::from(Line::styled("Toggle ignores", red)),
-        ]),
-        Row::new(vec![
-            Cell::from(Line::styled("h", blue)),
-            Cell::from(Line::styled("Toggle show hidden", red)),
-        ]),
-        Row::new(vec![
-            Cell::from(Line::styled("k / up", blue)),
-            Cell::from(Line::styled("Up", red)),
-        ]),
-        Row::new(vec![
-            Cell::from(Line::styled("j / down", blue)),
-            Cell::from(Line::styled("Down", red)),
-        ]),
-        Row::new(vec![
-            Cell::from(Line::styled("pgup / ctrl b / ctrl u", blue)),
-            Cell::from(Line::styled("Page Up", red)),
-        ]),
-        Row::new(vec![
-            Cell::from(Line::styled("pgdn / ctrl d / ctrl f", blue)),
-            Cell::from(Line::styled("Page Down", red)),
-        ]),
-        Row::new(vec![
-            Cell::from(Line::styled("q / ESC", blue)),
-            Cell::from(Line::styled("Quit", red)),
-        ]),
-    ])
+    let table = Table::new(
+        vec![
+            Row::new(vec![
+                Cell::from(Line::styled("1..8", blue)),
+                Cell::from(Line::styled("Change folder depth", red)),
+            ]),
+            Row::new(vec![
+                Cell::from(Line::styled("c", blue)),
+                Cell::from(Line::styled("Sort by file count", red)),
+            ]),
+            Row::new(vec![
+                Cell::from(Line::styled("s", blue)),
+                Cell::from(Line::styled("Sort by file size", red)),
+            ]),
+            Row::new(vec![
+                Cell::from(Line::styled("i", blue)),
+                Cell::from(Line::styled("Toggle ignores", red)),
+            ]),
+            Row::new(vec![
+                Cell::from(Line::styled("h", blue)),
+                Cell::from(Line::styled("Toggle show hidden", red)),
+            ]),
+            Row::new(vec![
+                Cell::from(Line::styled("k / up", blue)),
+                Cell::from(Line::styled("Up", red)),
+            ]),
+            Row::new(vec![
+                Cell::from(Line::styled("j / down", blue)),
+                Cell::from(Line::styled("Down", red)),
+            ]),
+            Row::new(vec![
+                Cell::from(Line::styled("pgup / ctrl b / ctrl u", blue)),
+                Cell::from(Line::styled("Page Up", red)),
+            ]),
+            Row::new(vec![
+                Cell::from(Line::styled("pgdn / ctrl d / ctrl f", blue)),
+                Cell::from(Line::styled("Page Down", red)),
+            ]),
+            Row::new(vec![
+                Cell::from(Line::styled("q / ESC", blue)),
+                Cell::from(Line::styled("Quit", red)),
+            ]),
+        ],
+        &[Constraint::Length(22), Constraint::Percentage(60)],
+    )
     .block(block)
     .header(Row::new(vec!["Key", "Usage"]).bottom_margin(1))
-    .widths(&[Constraint::Length(22), Constraint::Percentage(60)])
     .column_spacing(1);
 
     let area = centered_rect(50, 50, frame.size());
