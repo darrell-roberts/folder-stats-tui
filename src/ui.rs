@@ -97,7 +97,7 @@ fn render_help(frame: &mut Frame) {
                 Cell::from(Line::styled("Quit", red)),
             ]),
         ],
-        &[Constraint::Length(22), Constraint::Percentage(60)],
+        [Constraint::Length(22), Constraint::Percentage(60)],
     )
     .block(block)
     .header(Row::new(vec!["Key", "Usage"]).bottom_margin(1))
