@@ -112,12 +112,11 @@ impl<'a> Drop for MyVisitorBuilder<'a> {
 /// emits a traversal completed event when it is dropped.
 pub fn collect_stats(sender: Sender<Event>, config: Config) {
     std::thread::spawn(move || {
-        let c = config;
         let walker = WalkBuilder::new(config.root_path)
             .filter_entry(move |entry| {
                 (entry.file_type().map(|e| e.is_file()).unwrap_or(false)
-                    && check_filename_filter(entry, c.filters)
-                    && check_file_extension_filter(entry, c.filters))
+                    && check_filename_filter(entry, config.filters)
+                    && check_file_extension_filter(entry, config.filters))
                     || entry.file_type().map(|e| e.is_dir()).unwrap_or(false)
             })
             .ignore(!config.no_ignores)
