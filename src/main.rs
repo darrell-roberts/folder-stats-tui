@@ -38,7 +38,7 @@ fn main() -> Result<()> {
 
     tui.enter()?;
 
-    // Draw the intitial screen
+    // Draw the initial screen
     if let Err(err) = tui.draw(&app) {
         error!("Failed to draw tui: {err}");
     }

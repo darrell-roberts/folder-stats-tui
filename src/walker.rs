@@ -19,7 +19,7 @@ struct MyParallelVisitor<'a> {
 }
 
 impl<'a> MyParallelVisitor<'a> {
-    /// Convert the cannonical path into a relative path.
+    /// Convert the canonical path into a relative path.
     fn truncate_root(&self, path: &str) -> String {
         let (_, path) = path.split_at(self.root_path_bytes.len());
         String::from(path)
