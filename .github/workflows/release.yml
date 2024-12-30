@@ -74,6 +74,11 @@ jobs:
           export PATH=$HOME/.local/bin:$PATH
           make linux-app-image
 
+      - name: Debian package
+        run: |
+          cargo install cargo-deb
+          make deb
+
       # - name: Build bundle
       #   uses: AppImageCrafters/build-appimage-action@master
       #   env:
@@ -94,5 +99,6 @@ jobs:
         with:
           files: |
             Folder_Stats_TUI-x86_64.AppImage
+            target/debian/*.deb
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
