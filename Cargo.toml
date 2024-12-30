@@ -1,8 +1,9 @@
 [package]
 name = "folder-stats-tui"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 license = "MIT"
+description = "Terminal User Interface for viewing folder statistics"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -15,3 +16,16 @@ flexi_logger = "0.28"
 ignore = "0.4"
 log = "0.4"
 ratatui = "0.26"
+
+[package.metadata.deb]
+maintainer = "Darrell Roberts"
+copyright = "2024, Darrell Roberts"
+license-file = "LICENSE"
+extended-description = """\
+folder-stats-tui is a terminal-based user interface application designed to scan and display statistics of directories."""
+section = "utility"
+priority = "optional"
+assets = [
+    ["target/release/folder-stats-tui", "usr/bin/", "755"],
+    ["assets/folder-stats-tui.1.gz", "usr/share/man/man1/", "644"]
+]
