@@ -1,0 +1,8 @@
+[Desktop Entry]
+Categories=Utility
+Comment=Folder Stats TUI
+Exec=folder-stats-tui
+Icon=folder-stats-tui
+Name=Folder Stats TUI
+Terminal=true
+Type=Application
