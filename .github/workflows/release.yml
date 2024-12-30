@@ -77,7 +77,7 @@ jobs:
       - name: Debian package
         run: |
           cargo install cargo-deb
-          make deb
+          cargo deb
 
       # - name: Build bundle
       #   uses: AppImageCrafters/build-appimage-action@master
