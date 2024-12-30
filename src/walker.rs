@@ -18,7 +18,7 @@ struct MyParallelVisitor<'a> {
     results: HashMap<String, FolderStat>,
 }
 
-impl<'a> MyParallelVisitor<'a> {
+impl MyParallelVisitor<'_> {
     /// Convert the canonical path into a relative path.
     fn truncate_root(&self, path: &str) -> String {
         let (_, path) = path.split_at(self.root_path_bytes.len());
@@ -26,7 +26,7 @@ impl<'a> MyParallelVisitor<'a> {
     }
 }
 
-impl<'a> ParallelVisitor for MyParallelVisitor<'a> {
+impl ParallelVisitor for MyParallelVisitor<'_> {
     /// Visit each directory entry.
     fn visit(&mut self, result: Result<DirEntry, ignore::Error>) -> WalkState {
         match result {
@@ -71,7 +71,7 @@ impl<'a> ParallelVisitor for MyParallelVisitor<'a> {
     }
 }
 
-impl<'a> Drop for MyParallelVisitor<'a> {
+impl Drop for MyParallelVisitor<'_> {
     fn drop(&mut self) {
         let results = std::mem::take(&mut self.results);
         if let Err(err) = self.sender.send(Event::FolderEvent(results)) {
@@ -99,7 +99,7 @@ impl<'a> ParallelVisitorBuilder<'a> for MyVisitorBuilder<'a> {
     }
 }
 
-impl<'a> Drop for MyVisitorBuilder<'a> {
+impl Drop for MyVisitorBuilder<'_> {
     fn drop(&mut self) {
         if let Err(err) = self.sender.send(Event::ScanComplete) {
             error!("Failed to emit scan complete {err}");
