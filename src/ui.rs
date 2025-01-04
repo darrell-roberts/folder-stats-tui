@@ -22,7 +22,7 @@ pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
     let rows = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Length(6), Constraint::Min(10)])
-        .split(frame.size());
+        .split(frame.area());
 
     // Only emit this once on the first render when we have a result.
     if app.content_height == 0 && !app.scanning {
@@ -103,7 +103,7 @@ fn render_help(frame: &mut Frame) {
     .header(Row::new(vec!["Key", "Usage"]).bottom_margin(1))
     .column_spacing(1);
 
-    let area = centered_rect(50, 50, frame.size());
+    let area = centered_rect(50, 50, frame.area());
     frame.render_widget(Clear, area);
     frame.render_widget(table, area);
 }
@@ -269,7 +269,7 @@ fn render_content(
     let area = row;
     frame.render_stateful_widget(
         scrollbar,
-        area.inner(&Margin {
+        area.inner(Margin {
             vertical: 1,
             horizontal: 0,
         }),

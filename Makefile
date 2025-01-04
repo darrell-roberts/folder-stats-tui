@@ -1,4 +1,3 @@
-
 PLATFORM := $(shell uname)
 
 all: build
