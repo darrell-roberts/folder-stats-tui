@@ -1,6 +1,6 @@
 [package]
 name = "folder-stats-tui"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 license = "MIT"
 description = "Terminal User Interface for viewing folder statistics"
@@ -10,12 +10,12 @@ description = "Terminal User Interface for viewing folder statistics"
 [dependencies]
 anyhow = "1"
 bytesize = "1.3"
-clap = { version = "4.4", features = ["derive"] }
-crossterm = "0.27"
+clap = { version = "4.5", features = ["derive"] }
+crossterm = "0.28"
 flexi_logger = "0.28"
 ignore = "0.4"
 log = "0.4"
-ratatui = "0.26"
+ratatui = "0.29"
 
 [package.metadata.deb]
 maintainer = "Darrell Roberts"
