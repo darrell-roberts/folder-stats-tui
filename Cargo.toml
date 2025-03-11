@@ -9,7 +9,7 @@ description = "Terminal User Interface for viewing folder statistics"
 
 [dependencies]
 anyhow = "1"
-bytesize = "2.0"
+bytesize = "2"
 clap = { version = "4.5", features = ["derive"] }
 crossterm = "0.28"
 flexi_logger = "0.29"
@@ -26,6 +26,14 @@ folder-stats-tui is a terminal-based user interface application designed to scan
 section = "utility"
 priority = "optional"
 assets = [
-    ["target/release/folder-stats-tui", "usr/bin/", "755"],
-    ["assets/folder-stats-tui.1.gz", "usr/share/man/man1/", "644"]
+  [
+    "target/release/folder-stats-tui",
+    "usr/bin/",
+    "755",
+  ],
+  [
+    "assets/folder-stats-tui.1.gz",
+    "usr/share/man/man1/",
+    "644",
+  ],
 ]
