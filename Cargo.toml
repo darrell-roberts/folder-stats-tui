@@ -12,7 +12,7 @@ anyhow = "1"
 bytesize = "2"
 clap = { version = "4.5", features = ["derive"] }
 crossterm = "0.29"
-flexi_logger = "0.30"
+flexi_logger = "0.31"
 ignore = "0.4"
 log = "0.4"
 ratatui = "0.29"
