@@ -1,5 +1,5 @@
 use crate::args::Args;
-use std::{borrow::Cow, cmp::Reverse, collections::HashMap, path::PathBuf};
+use std::{borrow::Cow, cmp::Reverse, collections::HashMap, path::PathBuf, time::Duration};
 
 /// Sorting options for folders
 #[derive(Debug, Copy, Clone, Default)]
@@ -95,6 +95,8 @@ pub struct App {
     pub config: Config,
     /// Show help popup.
     pub show_help: bool,
+    /// Time take to scan
+    pub scan_time: Duration,
 }
 
 impl App {
@@ -112,10 +114,11 @@ impl App {
             should_quit: false,
             scroll_state: 0,
             max_scroll: 0,
-            sort: SortBy::default(),
+            sort: Default::default(),
             content_height: 0,
             folder_events: HashMap::new(),
             show_help: false,
+            scan_time: Default::default(),
         }
     }
 

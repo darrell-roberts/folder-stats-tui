@@ -28,7 +28,7 @@ pub enum Event {
     /// Walker scan progress. Emits folder being scanned.
     Progress(String),
     /// Walker scan completed.
-    ScanComplete,
+    ScanComplete(Duration),
     /// Initial rendered content frame size.
     ContentFrameSize(u16),
     /// Walker parallel worker folder collection.

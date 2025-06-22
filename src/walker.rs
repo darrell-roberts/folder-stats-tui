@@ -1,5 +1,5 @@
 //! Uses the `ignore` crate which is a type of folder traversal
-//! that allows skpping folders via `.ignore` and `.gitignore` configuration
+//! that allows skipping folders via `.ignore` and `.gitignore` configuration
 //! files found while traversing.
 //!
 use crate::{
@@ -8,7 +8,12 @@ use crate::{
 };
 use ignore::{DirEntry, ParallelVisitor, ParallelVisitorBuilder, WalkBuilder, WalkState};
 use log::error;
-use std::{collections::HashMap, os::unix::ffi::OsStrExt, sync::mpsc::Sender};
+use std::{
+    collections::HashMap,
+    os::unix::ffi::OsStrExt,
+    sync::mpsc::Sender,
+    time::{Duration, Instant},
+};
 
 /// Path visitor for each parallel thread worker.
 struct MyParallelVisitor<'a> {
@@ -32,16 +37,16 @@ impl ParallelVisitor for MyParallelVisitor<'_> {
         match result {
             Ok(entry) => {
                 if entry.path().is_dir() {
-                    let folder_name = entry
-                        .path()
-                        .to_str()
-                        .map(|p| self.truncate_root(p))
-                        .unwrap_or_else(|| {
-                            self.truncate_root(entry.path().to_string_lossy().as_ref())
-                        });
-                    if let Err(err) = self.sender.send(Event::Progress(folder_name)) {
-                        error!("Failed to emit folder name: {err}");
-                    }
+                    // let folder_name = entry
+                    //     .path()
+                    //     .to_str()
+                    //     .map(|p| self.truncate_root(p))
+                    //     .unwrap_or_else(|| {
+                    //         self.truncate_root(entry.path().to_string_lossy().as_ref())
+                    //     });
+                    // if let Err(err) = self.sender.send(Event::Progress(folder_name)) {
+                    //     error!("Failed to emit folder name: {err}");
+                    // }
                 } else if let Ok(size) = entry.metadata().map(|md| md.len()) {
                     let parents = entry
                         .path()
@@ -85,6 +90,7 @@ struct MyVisitorBuilder<'a> {
     sender: Sender<Event>,
     depth: u8,
     root_path_bytes: &'a [u8],
+    start: Instant,
 }
 
 impl<'a> ParallelVisitorBuilder<'a> for MyVisitorBuilder<'a> {
@@ -101,7 +107,8 @@ impl<'a> ParallelVisitorBuilder<'a> for MyVisitorBuilder<'a> {
 
 impl Drop for MyVisitorBuilder<'_> {
     fn drop(&mut self) {
-        if let Err(err) = self.sender.send(Event::ScanComplete) {
+        let elapsed = Instant::now() - self.start;
+        if let Err(err) = self.sender.send(Event::ScanComplete(elapsed)) {
             error!("Failed to emit scan complete {err}");
         }
     }
@@ -111,6 +118,8 @@ impl Drop for MyVisitorBuilder<'_> {
 /// visitor will collect it's results and then emit them when dropped. The builder
 /// emits a traversal completed event when it is dropped.
 pub fn collect_stats(sender: Sender<Event>, config: Config) {
+    start_progress_indicator(&sender, &config);
+
     std::thread::spawn(move || {
         let walker = WalkBuilder::new(config.root_path)
             .filter_entry(move |entry| {
@@ -124,15 +133,42 @@ pub fn collect_stats(sender: Sender<Event>, config: Config) {
             .git_ignore(!config.no_ignores)
             .build_parallel();
 
-        let root_path_bytes = config.root_path.as_os_str().as_bytes().to_vec();
+        let root_path_bytes = config.root_path.as_os_str().as_bytes();
 
         let mut my_builder = MyVisitorBuilder {
             sender,
             depth: config.depth,
-            root_path_bytes: &root_path_bytes,
+            root_path_bytes,
+            start: Instant::now(),
         };
 
         walker.visit(&mut my_builder);
+    });
+}
+
+fn start_progress_indicator(sender: &Sender<Event>, config: &Config) {
+    let sender = sender.clone();
+    let scan_folder = config
+        .root_path
+        .to_str()
+        .map(ToOwned::to_owned)
+        .unwrap_or_default();
+
+    std::thread::spawn(move || {
+        if let Err(err) = sender.send(Event::Progress(scan_folder.clone())) {
+            error!("Failed to set initial progress: {err}");
+        }
+        let mut i = 0;
+        loop {
+            i = if i == 3 { 0 } else { i + 1 };
+            std::thread::sleep(Duration::from_secs(3));
+            if let Err(err) = sender.send(Event::Progress(format!(
+                "{scan_folder}{}",
+                (0..i).map(|_| '.').collect::<String>()
+            ))) {
+                error!("Failed to set initial progress: {err}");
+            }
+        }
     });
 }
 

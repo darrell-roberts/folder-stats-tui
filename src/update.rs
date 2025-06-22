@@ -101,7 +101,7 @@ pub fn handle_event(app: &mut App, event: Event, sender: mpsc::Sender<Event>) {
     match event {
         Event::Key(key_event) => handle_key_event(app, key_event, sender),
         Event::Progress(folder) => app.update_progress(folder),
-        Event::ScanComplete => {
+        Event::ScanComplete(elapsed) => {
             let mut sorted_result = std::mem::take(&mut app.folder_events)
                 .into_iter()
                 .collect::<Vec<_>>();
@@ -109,6 +109,7 @@ pub fn handle_event(app: &mut App, event: Event, sender: mpsc::Sender<Event>) {
             app.scan_result = sorted_result;
             app.compute_max_scroll();
             app.scanning = false;
+            app.scan_time = elapsed;
         }
         Event::Mouse(mouse_event) => handle_mouse_event(app, mouse_event),
         Event::Resize(_, h) => {

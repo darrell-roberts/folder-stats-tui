@@ -15,7 +15,7 @@ use ratatui::{
     },
     Frame,
 };
-use std::sync::mpsc;
+use std::{sync::mpsc, time::Duration};
 
 /// Render the Tui based on the [`App`] current state.
 pub fn render(app: &App, frame: &mut Frame, sender: mpsc::Sender<Event>) {
@@ -183,6 +183,10 @@ fn render_header(
                     Span::styled("hidden: ", blue),
                     Span::styled(format!("{}", !app.config.show_hidden), red),
                 ]),
+                Line::from(vec![
+                    Span::styled("Scan time: ", blue),
+                    Span::styled(format_duration(app.scan_time), red),
+                ]),
                 Line::from("? - for help".light_blue()),
             ]
         })
@@ -295,4 +299,42 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
             Constraint::Percentage((100 - percent_x) / 2),
         ])
         .split(popup_layout[1])[1]
+}
+
+fn format_duration(duration: Duration) -> String {
+    let ms = duration.as_millis();
+    let seconds = duration.as_secs();
+    let minutes = seconds / 60;
+    let hours = minutes / 60;
+
+    match (hours, minutes, seconds, ms) {
+        (0, 0, 0, ms) => format!("{ms} milliseconds"),
+        (0, 0, s, ms) => {
+            let ms = ms % 1000;
+            format!("{s} seconds {ms} milliseconds")
+        }
+        (0, m, s, ms) => {
+            let seconds = s % 60;
+            let ms = ms % 1000;
+            format!("{m} minutes {seconds} seconds {ms} milliseconds")
+        }
+        (h, m, s, ms) => {
+            let minutes = m % 60;
+            let seconds = s % 60;
+            let ms = ms % 1000;
+            format!("{h} hours {minutes} minutes {seconds} seconds {ms} milliseconds")
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::format_duration;
+    use std::time::Duration;
+
+    #[test]
+    fn test_duration_format() {
+        let d = Duration::from_secs(310);
+        print!("{}", format_duration(d));
+    }
 }
