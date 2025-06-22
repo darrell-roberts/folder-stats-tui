@@ -160,7 +160,7 @@ fn start_progress_indicator(sender: &Sender<Event>, config: &Config) {
         }
         let mut i = 0;
         loop {
-            i = if i == 3 { 0 } else { i + 1 };
+            i += 1;
             std::thread::sleep(Duration::from_secs(3));
             if let Err(err) = sender.send(Event::Progress(format!(
                 "{scan_folder}{}",

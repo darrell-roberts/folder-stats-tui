@@ -302,27 +302,17 @@ fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
 }
 
 fn format_duration(duration: Duration) -> String {
-    let ms = duration.as_millis();
-    let seconds = duration.as_secs();
-    let minutes = seconds / 60;
+    let (ms, ms_rem) = (duration.as_millis(), duration.as_millis() % 1000);
+    let (seconds, seconds_rem) = (duration.as_secs(), duration.as_secs() % 60);
+    let (minutes, minutes_rem) = (seconds / 60, (seconds / 60) % 60);
     let hours = minutes / 60;
 
     match (hours, minutes, seconds, ms) {
         (0, 0, 0, ms) => format!("{ms} milliseconds"),
-        (0, 0, s, ms) => {
-            let ms = ms % 1000;
-            format!("{s} seconds {ms} milliseconds")
-        }
-        (0, m, s, ms) => {
-            let seconds = s % 60;
-            let ms = ms % 1000;
-            format!("{m} minutes {seconds} seconds {ms} milliseconds")
-        }
-        (h, m, s, ms) => {
-            let minutes = m % 60;
-            let seconds = s % 60;
-            let ms = ms % 1000;
-            format!("{h} hours {minutes} minutes {seconds} seconds {ms} milliseconds")
+        (0, 0, s, _) => format!("{s} seconds {ms_rem} milliseconds"),
+        (0, m, _, _) => format!("{m} minutes {seconds_rem} seconds {ms_rem} milliseconds"),
+        (h, _, _, _) => {
+            format!("{h} hours {minutes_rem} minutes {seconds_rem} seconds {ms_rem} milliseconds")
         }
     }
 }
@@ -333,8 +323,17 @@ mod test {
     use std::time::Duration;
 
     #[test]
-    fn test_duration_format() {
+    fn test_min_secs_duration_format() {
         let d = Duration::from_secs(310);
-        print!("{}", format_duration(d));
+        assert_eq!("5 minutes 10 seconds 0 milliseconds", format_duration(d));
+    }
+
+    #[test]
+    fn test_hour_min_secs_duration_format() {
+        let d = Duration::from_secs(9312);
+        assert_eq!(
+            "2 hours 35 minutes 12 seconds 0 milliseconds",
+            format_duration(d)
+        );
     }
 }
