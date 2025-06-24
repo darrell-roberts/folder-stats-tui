@@ -26,8 +26,7 @@ struct MyParallelVisitor<'a> {
 impl MyParallelVisitor<'_> {
     /// Convert the canonical path into a relative path.
     fn truncate_root(&self, path: &str) -> String {
-        let (_, path) = path.split_at(self.root_path_bytes.len());
-        String::from(path)
+        path.split_at(self.root_path_bytes.len()).1.to_owned()
     }
 }
 
@@ -36,18 +35,7 @@ impl ParallelVisitor for MyParallelVisitor<'_> {
     fn visit(&mut self, result: Result<DirEntry, ignore::Error>) -> WalkState {
         match result {
             Ok(entry) => {
-                if entry.path().is_dir() {
-                    // let folder_name = entry
-                    //     .path()
-                    //     .to_str()
-                    //     .map(|p| self.truncate_root(p))
-                    //     .unwrap_or_else(|| {
-                    //         self.truncate_root(entry.path().to_string_lossy().as_ref())
-                    //     });
-                    // if let Err(err) = self.sender.send(Event::Progress(folder_name)) {
-                    //     error!("Failed to emit folder name: {err}");
-                    // }
-                } else if let Ok(size) = entry.metadata().map(|md| md.len()) {
+                if let Ok(size) = entry.metadata().map(|md| md.len()) {
                     let parents = entry
                         .path()
                         .ancestors()
