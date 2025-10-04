@@ -1,3 +1,4 @@
+//! Application configuration and state.
 use crate::args::Args;
 use std::{borrow::Cow, cmp::Reverse, collections::HashMap, path::PathBuf, time::Duration};
 
@@ -182,12 +183,12 @@ impl App {
         (self.content_height / Self::FOLDER_ITEM_HEIGHT) as usize
     }
 
-    pub fn root_folder(&self) -> Cow<str> {
+    pub fn root_folder(&self) -> Cow<'_, str> {
         self.config
             .root_path
             .as_path()
             .to_str()
-            .map(Cow::Borrowed)
+            .map(Into::into)
             .unwrap_or(self.config.root_path.to_string_lossy())
     }
 }
